@@ -14,9 +14,20 @@
   --g:#2E8A57; --y:#C7860E; --r:#BF4136;
   --g-bg:#E3F2E9; --y-bg:#FBF0DA; --r-bg:#F8E3E0;
   --t-under:#3C84BC; --t-55:#4FA06A; --t-60:#D99A23; --t-hot:#C9473D;
+  --on-ink:#FFFFFF; --lamp:#15232D; --bar:#9DB3C2; --ai-bg:#EEF5FB; --y-ink:#94620A; --off:#B7C3CB;
   --radius-l:18px; --radius-s:8px;
   color-scheme: light;
 }
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0F171C; --panel:#16212A; --ink:#E4ECF0; --muted:#93A4AF; --line:#2A3943; --soft:#1C2932;
+  --accent:#6AAAD8; --accent-ink:#0F171C; --g:#46B97A; --y:#E3A93A; --r:#E4685B;
+  --g-bg:#16301F; --y-bg:#33280F; --r-bg:#3A1A17; --on-ink:#0F171C; --lamp:#0B1216; --bar:#4D6576; --ai-bg:#1A3346; --y-ink:#E9B65A; --off:#4A5A65;
+  color-scheme: dark}}
+:root[data-theme="dark"]{
+  --paper:#0F171C; --panel:#16212A; --ink:#E4ECF0; --muted:#93A4AF; --line:#2A3943; --soft:#1C2932;
+  --accent:#6AAAD8; --accent-ink:#0F171C; --g:#46B97A; --y:#E3A93A; --r:#E4685B;
+  --g-bg:#16301F; --y-bg:#33280F; --r-bg:#3A1A17; --on-ink:#0F171C; --lamp:#0B1216; --bar:#4D6576; --ai-bg:#1A3346; --y-ink:#E9B65A; --off:#4A5A65;
+  color-scheme: dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--paper);color:var(--ink);font:400 15px/1.5 "Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;font-variation-settings:"wdth" 100}
@@ -29,9 +40,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 .brand p{margin:8px 0 0;color:var(--muted);max-width:52ch}
 .tabs{display:flex;gap:4px;margin-left:auto;background:var(--soft);padding:4px;border-radius:999px;border:1px solid var(--line)}
 .tabs button{border:0;background:none;padding:8px 16px;border-radius:999px;cursor:pointer;color:var(--muted);font-weight:600}
-.tabs button[aria-selected="true"]{background:var(--ink);color:#fff}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--on-ink)}
 .ai-btn{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:8px 14px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:8px}
-.ai-dot{width:9px;height:9px;border-radius:50%;background:#B7C3CB}
+.ai-dot{width:9px;height:9px;border-radius:50%;background:var(--off)}
 .ai-dot.on{background:var(--g)}
 
 /* ---------- layout ---------- */
@@ -48,7 +59,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 form{display:flex;flex-direction:column;gap:14px}
 fieldset{margin:0;border:1px solid var(--line);background:var(--panel);border-radius:var(--radius-l);padding:18px 18px 20px}
 legend{padding:0;float:left;width:100%;display:flex;align-items:baseline;gap:10px;margin-bottom:12px;font-weight:700;font-size:17px}
-legend b{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;font-size:13px;flex:none}
+legend b{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--on-ink);font-size:13px;flex:none}
 legend em{font-style:normal;font-weight:400;color:var(--muted);font-size:13px;margin-left:auto}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;clear:both;align-items:end}
 .row.one{grid-template-columns:1fr}
@@ -56,13 +67,13 @@ label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600}
 label .hint{font-weight:400;color:var(--muted)}
 input[type=number],input[type=text],input[type=password],select,textarea{width:100%;border:1px solid var(--line);border-radius:var(--radius-s);padding:9px 10px;background:var(--soft);font-size:15px}
 textarea{min-height:64px;resize:vertical}
-input:focus,select:focus,textarea:focus{background:#fff;border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(31,95,139,.18)}
+input:focus,select:focus,textarea:focus{background:var(--panel);border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(31,95,139,.18)}
 .check{flex-direction:row;align-items:center;gap:8px;font-weight:500;margin-top:4px}
 .read{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;clear:both}
 .read:empty{display:none}
 .read .tag{font-size:12px;background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:3px 7px}
 .read .tag b{font-weight:700}
-.from-ai{background:#EEF5FB!important;border-color:#9CC1DD!important}
+.from-ai{background:var(--ai-bg)!important;border-color:var(--accent)!important}
 
 .drop{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;clear:both}
 @media (max-width:480px){.drop{grid-template-columns:1fr}}
@@ -72,12 +83,12 @@ input:focus,select:focus,textarea:focus{background:#fff;border-color:var(--accen
 .slot strong{font-size:13px}
 .slot span{font-size:12px;color:var(--muted);line-height:1.35}
 .slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.22}
-.slot.busy::after{content:"Reading…";position:absolute;top:8px;right:8px;font-size:11px;background:var(--ink);color:#fff;border-radius:4px;padding:2px 6px}
+.slot.busy::after{content:"Reading…";position:absolute;top:8px;right:8px;font-size:11px;background:var(--ink);color:var(--on-ink);border-radius:4px;padding:2px 6px}
 .slot.done{border-style:solid;border-color:var(--g)}
 .ai-out{clear:both;margin-top:10px;font-size:13px;display:flex;flex-direction:column;gap:8px}
 .ai-out:empty{display:none}
 .ai-msg{background:var(--soft);border-left:3px solid var(--accent);padding:8px 10px;border-radius:0 8px 8px 0}
-.ai-msg button{margin-top:6px;border:1px solid var(--accent);background:#fff;color:var(--accent);border-radius:6px;padding:3px 8px;cursor:pointer;font-weight:600;font-size:12px}
+.ai-msg button{margin-top:6px;border:1px solid var(--accent);background:var(--panel);color:var(--accent);border-radius:6px;padding:3px 8px;cursor:pointer;font-weight:600;font-size:12px}
 .ai-msg.err{border-left-color:var(--r)}
 
 /* ---------- result ---------- */
@@ -88,10 +99,10 @@ input:focus,select:focus,textarea:focus{background:#fff;border-color:var(--accen
 .card .sub{margin:0 0 14px;color:var(--muted);font-size:13px}
 
 .verdict{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;padding:24px 24px;border-width:2px}
-.verdict.green{border-color:var(--g);background:linear-gradient(0deg,var(--panel),var(--panel)) padding-box}
+.verdict.green{border-color:var(--g)}
 .verdict.yellow{border-color:var(--y)}
 .verdict.red{border-color:var(--r)}
-.lamp{display:flex;flex-direction:column;gap:6px;padding:8px;background:var(--ink);border-radius:22px}
+.lamp{display:flex;flex-direction:column;gap:6px;padding:8px;background:var(--lamp);border-radius:22px}
 .lamp i{width:26px;height:26px;border-radius:50%;background:#33434E;display:block}
 .green .lamp i:nth-child(3){background:#46C07B;box-shadow:0 0 14px #46C07B}
 .yellow .lamp i:nth-child(2){background:#F2B33A;box-shadow:0 0 14px #F2B33A}
@@ -127,9 +138,9 @@ input:focus,select:focus,textarea:focus{background:#fff;border-color:var(--accen
 .lchart{display:grid;grid-template-columns:150px 1fr;gap:10px 12px;align-items:center;font-size:13px}
 @media (max-width:520px){.lchart{grid-template-columns:1fr}}
 .track{position:relative;height:22px;background:var(--soft);border-radius:6px}
-.bar{position:absolute;top:4px;height:14px;border-radius:4px;background:#9DB3C2}
+.bar{position:absolute;top:4px;height:14px;border-radius:4px;background:var(--bar)}
 .bar.est{background:var(--ink);top:2px;height:18px}
-.dotm{position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:var(--accent);transform:translateX(-50%);border:2px solid #fff}
+.dotm{position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:var(--accent);transform:translateX(-50%);border:2px solid var(--panel)}
 .dotm.lb::after{content:"→";position:absolute;left:16px;top:-3px;font-size:13px;color:var(--accent);font-weight:700}
 .vline{position:absolute;top:-4px;bottom:-4px;width:0;border-left:1.5px dashed var(--r)}
 .axis{position:relative;height:16px;font-size:11px;color:var(--muted)}
@@ -138,7 +149,7 @@ input:focus,select:focus,textarea:focus{background:#fff;border-color:var(--accen
 
 /* costs */
 .cost{display:grid;grid-template-columns:110px 1fr auto;gap:8px 12px;align-items:center;font-size:13px}
-.cost .cb{height:20px;border-radius:4px;background:#9DB3C2;position:relative}
+.cost .cb{height:20px;border-radius:4px;background:var(--bar);position:relative}
 .cost .cb.hp{background:var(--g)}
 .cost .cb.hp i{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(45deg,rgba(255,255,255,.45) 0 4px,transparent 4px 8px);border-radius:0 4px 4px 0}
 .cost .v{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
@@ -168,7 +179,7 @@ table{border-collapse:collapse;width:100%;font-size:14px;min-width:760px}
 th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 th{font-size:12.5px;color:var(--muted);font-weight:600}
 td .pill{white-space:nowrap;display:inline-flex;gap:6px;align-items:center;font-weight:700;border-radius:999px;padding:3px 10px}
-.pill.green{background:var(--g-bg);color:var(--g)} .pill.yellow{background:var(--y-bg);color:#94620A} .pill.red{background:var(--r-bg);color:var(--r)}
+.pill.green{background:var(--g-bg);color:var(--g)} .pill.yellow{background:var(--y-bg);color:var(--y-ink)} .pill.red{background:var(--r-bg);color:var(--r)}
 td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .match{font-size:12px;color:var(--g);font-weight:600}
 .miss{font-size:12px;color:var(--r);font-weight:600}
@@ -181,7 +192,7 @@ dialog::backdrop{background:rgba(21,35,45,.45)}
 .dlg h2{margin:0;font-size:20px}
 .dlg p{margin:0;color:var(--muted);font-size:14px}
 .dlg .actions{display:flex;gap:8px;justify-content:flex-end}
-.btn{border:0;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff}
+.btn{border:0;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
 .btn.sec{background:var(--soft);color:var(--ink);border:1px solid var(--line)}
 [hidden]{display:none!important}
 .foot{color:var(--muted);font-size:12.5px;padding:0 clamp(16px,4vw,48px) 32px}
@@ -809,7 +820,7 @@ function findingsCard(r) {
   const groups = [
     ['blocker', 'Obstacle — needs to change first', 'var(--r)'],
     ['check', 'Needs checking on site', 'var(--y)'],
-    ['note', "Good to know / can't tell from the data", '#8FA2AF'],
+    ['note', "Good to know / can't tell from the data", 'var(--muted)'],
     ['ok', 'Looks fine', 'var(--g)'],
   ];
   const html = groups.map(([s, title, col]) => {
@@ -860,11 +871,27 @@ function renderAll() {
 }
 
 /* ---------------- AI (optional) ---------------- */
-const ai = { key: '', model: 'claude-sonnet-5-5' };
+const ai = { key: '', model: 'claude-sonnet-5-5', sample: null };
 try { ai.key = sessionStorage.getItem('hp_key') || ''; ai.model = sessionStorage.getItem('hp_model') || ai.model; } catch (e) {}
-function aiState() { $('#aiDot').classList.toggle('on', !!ai.key); $('#aiLabel').textContent = ai.key ? 'AI reading: on' : 'AI reading: off'; }
+const aiOn = () => !!(ai.sample || ai.key);
+function aiState() {
+  $('#aiDot').classList.toggle('on', aiOn());
+  $('#aiLabel').textContent = ai.sample ? 'AI reading: on (your Claude)' : ai.key ? 'AI reading: on' : 'AI reading: off';
+}
 aiState();
-$('#aiBtn').addEventListener('click', () => { $('#apiKey').value = ai.key; $('#apiModel').value = ai.model; $('#aiDlg').showModal(); });
+// Inside Claude, the page can ask Claude on the viewer's own account: no API key needed.
+if (window.claude && typeof window.claude.use === 'function') {
+  window.claude.use('sample').then(async (s) => {
+    if (!s) return;
+    const lim = await s.limits().catch(() => null);
+    if (!lim || !lim.images) return;
+    ai.sample = s; aiState();
+  }).catch(() => {});
+}
+$('#aiBtn').addEventListener('click', () => {
+  if (ai.sample) { msg('AI reading uses your own Claude account here. The first upload asks you to allow it. Add a photo of a bill, a radiator or the outside wall below.'); $('#slotBill').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  $('#apiKey').value = ai.key; $('#apiModel').value = ai.model; $('#aiDlg').showModal();
+});
 $('#aiDlg').addEventListener('close', () => {
   if ($('#aiDlg').returnValue !== 'save') return;
   ai.key = $('#apiKey').value.trim(); ai.model = $('#apiModel').value.trim() || 'claude-sonnet-5-5';
@@ -875,6 +902,10 @@ $('#aiDlg').addEventListener('close', () => {
 function toB64(file) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(file); }); }
 
 async function askClaude(file, prompt) {
+  if (ai.sample) {
+    if (file.type === 'application/pdf') throw { code: 'pdf', message: 'Please upload a photo or screenshot of the bill page with the yearly consumption.' };
+    return ai.sample.json(prompt, { images: [file] });
+  }
   const data = await toB64(file);
   const block = file.type === 'application/pdf'
     ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data } }
@@ -910,7 +941,7 @@ $$('.slot input').forEach((inp) => inp.addEventListener('change', async () => {
   const slot = inp.closest('.slot'); const kind = inp.dataset.kind;
   $('img', slot)?.remove();
   if (file.type.startsWith('image/')) { const img = document.createElement('img'); img.src = URL.createObjectURL(file); img.alt = ''; slot.prepend(img); }
-  if (!ai.key) {
+  if (!aiOn()) {
     slot.classList.add('done');
     const hints = { bill: 'Type the yearly kWh from the bill into step 2 — or turn on AI reading to fill it in automatically.', radiator: 'Look at the radiator from the side and pick the number of panels under “Radiator type”. Turn on AI reading to estimate it from the photo.', outside: 'Saved for the technician. Turn on AI reading to get a first look at where the outdoor unit could go.' };
     msg(`${hints[kind]} <button type="button" data-ai>Turn on AI reading</button>`);
@@ -922,7 +953,12 @@ $$('.slot input').forEach((inp) => inp.addEventListener('change', async () => {
     const j = await askClaude(file, PROMPTS[kind]);
     slot.classList.remove('busy'); slot.classList.add('done');
     if (kind === 'bill') applyBill(j); else if (kind === 'radiator') applyRadiator(j); else applyOutside(j);
-  } catch (e) { slot.classList.remove('busy'); msg(`Couldn't read the file: ${esc(e.message)}`, 'err'); }
+  } catch (e) {
+    slot.classList.remove('busy');
+    const copy = { not_granted: 'AI reading was not allowed for this page. You can still fill in the form by hand.', rate_limited: 'Too many requests right now. Try again in a minute.', image_rejected: "That file couldn't be read. Try a JPG or PNG photo.", invalid_json: "The answer couldn't be read. Try again or use a clearer photo.", refused: "Claude couldn't assess this photo. Try a different one.", sampling_disabled: 'Claude is not available for this account. Fill in the form by hand.' };
+    msg(copy[e && e.code] || `Couldn't read the file: ${esc((e && e.message) || e)}`, 'err');
+    if (e && (e.code === 'not_granted' || e.code === 'sampling_disabled')) { ai.sample = null; aiState(); }
+  }
 }));
 
 function setField(name, val) { const el = form.elements[name]; if (!el || val == null) return; el.value = val; el.classList.add('from-ai'); }
