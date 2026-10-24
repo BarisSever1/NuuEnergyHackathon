@@ -1,0 +1,38 @@
+[
+  {
+    "building_id": "B-04",
+    "construction_year": 1987,
+    "floor_area_m2": 160,
+    "renovation_status": null,
+    "heat_distribution": "radiators",
+    "annual_consumption_kwh": 25000,
+    "energy_carrier": "oil",
+    "energy_carrier_detail": "heating oil, approx. 2,500 litres per year",
+    "radiator_info": "12 radiators with valve blocks; type and age not documented",
+    "pipe_system": "single-pipe",
+    "flow_temperature_c": null,
+    "persons_in_household": 3,
+    "hot_water_via_heating": true,
+    "rooms": null,
+    "building_notes": "Semi-detached house. No renovation information.",
+    "location": "Munich area (85xxx)"
+  },
+  {
+    "building_id": "B-05",
+    "construction_year": 2006,
+    "floor_area_m2": 125,
+    "renovation_status": null,
+    "heat_distribution": "mixed",
+    "annual_consumption_kwh": 27000,
+    "energy_carrier": "gas",
+    "energy_carrier_detail": "natural gas",
+    "radiator_info": "2 heating circuits: underfloor heating plus 8 radiators with presettable valves; type and age not documented",
+    "pipe_system": "unknown",
+    "flow_temperature_c": null,
+    "persons_in_household": 3,
+    "hot_water_via_heating": true,
+    "rooms": 14,
+    "building_notes": "No additional insulation on facade or roof. Double low-e glazing. Solar thermal system present.",
+    "location": "Munich area (85xxx)"
+  }
+]
