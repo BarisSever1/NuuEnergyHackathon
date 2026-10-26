@@ -1,2 +1,0 @@
-# NuuEnergyHackathon
-Heat-Pump profiling
