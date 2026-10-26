@@ -1,0 +1,1156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heat Pump Ready?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one calm column for the homeowner (one question per screen), a two-pane desk for the installer. */
+:root{
+  /* light-only by choice: bright, airy, high contrast for older eyes */
+  --bg:#FFFFFF; --panel:#FFFFFF; --ink:#1B2B36; --muted:#5E6E78; --line:#E2E8ED; --soft:#F4F7FA;
+  --accent:#2F6FD0; --accent-soft:#EAF2FD; --on-accent:#FFFFFF; --on-ink:#FFFFFF;
+  --g:#23955A; --y:#C68A12; --r:#C8463A; --g-bg:#E8F6EE; --y-bg:#FDF4E1; --r-bg:#FCEAE7;
+  --lamp:#2B3944; --lamp-off:#48586380; --bar:#C9D6E0;
+  --font:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 19px/1.5 var(--font)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+h1,h2,h3{text-wrap:balance}
+[hidden]{display:none!important}
+
+/* ---------- top bar ---------- */
+.bar-top{box-shadow:0 1px 0 var(--line);display:flex;align-items:center;gap:16px;padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:var(--panel);border-bottom:1px solid var(--line)}
+.logo{font-weight:700;font-size:20px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.logo svg{width:28px;height:28px}
+.bar-top .sp{flex:1}
+.link{background:none;border:0;color:var(--accent);font-weight:700;cursor:pointer;padding:6px 4px;font-size:16px;white-space:nowrap}
+@media (max-width:480px){.logo{font-size:16px;gap:6px}.logo svg{width:22px;height:22px}.bar-top{gap:10px}.link{font-size:15px}}
+.progress{height:6px;background:var(--soft)}
+.col .q-title{color:var(--ink)}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s ease}
+
+/* ---------- customer column ---------- */
+.col{max-width:760px;margin:0 auto;padding-block:36px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.q-title{font-size:clamp(26px,4.4vw,34px);line-height:1.2;margin:0 0 10px;font-weight:700;text-align:center}
+.q-help{color:var(--muted);text-align:center;margin:0 auto 28px;max-width:56ch}
+.step-count{text-align:center;color:var(--muted);font-size:16px;margin-bottom:8px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.tile{background:var(--panel);box-shadow:0 1px 3px rgba(27,43,54,.06);border:2px solid var(--line);border-radius:16px;padding:20px 14px 18px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;text-align:center;font-weight:700;min-height:150px;justify-content:center}
+.tile:hover{border-color:var(--accent)}
+.tile[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.tile svg{width:56px;height:56px;color:var(--accent)}
+.tile small{font-weight:400;color:var(--muted);font-size:15px;line-height:1.3}
+.tiles.small .tile{min-height:76px;padding:14px 10px}
+.row-q{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:10px}
+@media (max-width:600px){.row-q{grid-template-columns:1fr}}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{border:2px solid var(--line);background:var(--panel);border-radius:10px;padding:10px 16px;cursor:pointer;font-weight:700;min-width:84px}
+.seg button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.sub-q{font-weight:700;margin:28px 0 12px;font-size:21px;text-align:center}
+.num-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px 20px;text-align:center}
+.big-num{font-size:44px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.big-num small{font-size:20px;color:var(--muted);margin-left:6px}
+input[type=range]{width:100%;accent-color:var(--accent);height:36px}
+.num-input{font-size:28px;font-weight:700;width:220px;max-width:100%;text-align:center;border:2px solid var(--line);border-radius:12px;padding:10px;background:var(--soft)}
+.or{color:var(--muted);text-align:center;margin:18px 0 10px}
+.tip{display:flex;gap:12px;align-items:flex-start;background:var(--accent-soft);border-radius:14px;padding:14px 16px;margin-top:24px;font-size:17px}
+.nav{display:flex;gap:12px;justify-content:center;margin-top:32px;flex-wrap:wrap}
+.btn{border:0;border-radius:12px;padding:16px 28px;font-weight:700;cursor:pointer;background:var(--accent);color:var(--on-accent);font-size:19px;min-height:58px}
+.btn.primary{background:var(--accent);color:var(--on-accent)}
+.btn.ghost{background:var(--panel);color:var(--ink);border:2px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.wide{min-width:min(240px,100%)}
+.back{min-width:58px;padding:16px 18px}
+
+/* start */
+.hero{text-align:center;padding-top:20px}
+.hero h1{font-size:clamp(34px,6vw,52px);line-height:1.1;margin:0 0 16px}
+.hero p{color:var(--muted);max-width:44ch;margin:0 auto 28px;font-size:20px}
+.promises{display:flex;justify-content:center;gap:10px 22px;flex-wrap:wrap;margin:26px 0 0;padding:0;list-style:none;color:var(--muted);font-size:17px}
+.promises li::before{content:"✓ ";color:var(--g);font-weight:700}
+.examples{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);text-align:center;font-size:16px;color:var(--muted)}
+.examples button{margin:6px 4px;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:15px;color:var(--ink)}
+
+/* result */
+.light-card{background:var(--panel);border:3px solid var(--line);border-radius:22px;padding:30px 26px;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center}
+.light-card.green{border-color:var(--g)} .light-card.yellow{border-color:var(--y)} .light-card.red{border-color:var(--r)}
+@media (max-width:560px){.light-card{grid-template-columns:1fr;justify-items:center;text-align:center}}
+.lamp{display:flex;flex-direction:column;gap:10px;padding:12px;background:var(--lamp);border-radius:34px}
+.lamp i{width:46px;height:46px;border-radius:50%;background:var(--lamp-off);display:block}
+.green .lamp i:nth-child(3){background:#43C47E;box-shadow:0 0 22px #43C47E}
+.yellow .lamp i:nth-child(2){background:#F2B33A;box-shadow:0 0 22px #F2B33A}
+.red .lamp i:nth-child(1){background:#E5594C;box-shadow:0 0 22px #E5594C}
+.light-card h2{font-size:clamp(28px,4.6vw,38px);line-height:1.15;margin:0 0 10px}
+.light-card p{margin:0;font-size:20px}
+.facts{display:grid;gap:12px;margin-top:20px}
+.fact{display:flex;gap:14px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.fact .ic{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700}
+.fact.ok .ic{background:var(--g-bg);color:var(--g)} .fact.info .ic{background:var(--accent-soft);color:var(--accent)}
+.group-h{display:flex;flex-direction:column;margin:10px 2px -4px}
+.group-h span{color:var(--muted);font-size:15px}
+.tech-card{margin-top:16px;background:var(--soft);border-radius:14px;padding:16px 18px;font-size:17px}
+.tech-card ul{margin:8px 0 0;padding-left:20px;color:var(--ink)} .fact.check .ic{background:var(--y-bg);color:var(--y)} .fact.money .ic{background:var(--accent-soft);color:var(--accent)} .fact.blocker .ic{background:var(--r-bg);color:var(--r)}
+.fact b{display:block}
+.fact span{color:var(--muted);font-size:17px}
+details.how{margin-top:20px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 18px;font-size:17px}
+details.how summary{cursor:pointer;font-weight:700}
+details.how ul{color:var(--muted);padding-left:20px;margin:10px 0 0}
+
+/* next step */
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:640px){.choices{grid-template-columns:1fr}}
+.choice{background:var(--panel);border:2px solid var(--line);border-radius:20px;padding:26px 22px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:10px}
+.choice:hover{border-color:var(--accent)}
+.choice svg{width:48px;height:48px;color:var(--accent)}
+.choice h3{margin:0;font-size:24px}
+.choice p{margin:0;color:var(--muted);font-size:17px}
+.choice .go{margin-top:auto;padding-top:8px;font-weight:700;color:var(--accent)}
+.share{display:flex;justify-content:center;margin-top:22px}
+
+/* forms */
+.form{display:grid;gap:16px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px}
+.form label{display:flex;flex-direction:column;gap:6px;font-weight:700}
+.form label span{font-weight:400;color:var(--muted);font-size:16px}
+.form input[type=text],.form input[type=tel],.form input[type=email],.form input[type=password]{border:2px solid var(--line);border-radius:12px;padding:14px;background:var(--soft);font-size:19px;width:100%}
+.form input:focus{border-color:var(--accent);background:var(--panel);outline:none}
+.consent{flex-direction:row!important;align-items:flex-start;gap:12px!important;font-weight:400!important;font-size:17px}
+.consent input{width:24px;height:24px;margin-top:3px;accent-color:var(--accent);flex:none}
+.err{color:var(--r);font-size:16px;min-height:1em}
+.note{font-size:14px;color:var(--muted);text-align:center;margin-top:16px}
+
+/* photo cards */
+.photos{display:grid;gap:14px}
+.photo{background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:18px;display:grid;grid-template-columns:96px minmax(0,1fr);gap:16px;align-items:start}
+.photo.done{border-color:var(--g)}
+@media (max-width:520px){.photo{grid-template-columns:1fr}}
+.thumb{width:96px;height:96px;border-radius:12px;background:var(--soft);display:grid;place-items:center;overflow:hidden}
+.thumb svg{width:44px;height:44px;color:var(--muted)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.photo h3{margin:0 0 4px;font-size:21px}
+.photo p{margin:0 0 10px;color:var(--muted);font-size:16px}
+.up{display:inline-flex;align-items:center;gap:8px;position:relative;border:2px solid var(--accent);color:var(--accent);background:var(--panel);border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer}
+.up svg{width:22px;height:22px}
+.up input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.read-out{margin-top:10px;font-size:16px;background:var(--soft);border-radius:10px;padding:10px 12px}
+.read-out:empty{display:none}
+.read-out.busy::before{content:"Reading your photo…";color:var(--muted)}
+.manual{margin-top:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:16px}
+.manual input{border:2px solid var(--line);border-radius:10px;padding:8px 10px;width:140px;background:var(--soft)}
+
+/* savings */
+.save-hero{text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:30px 22px}
+.save-hero .lbl{color:var(--muted);font-size:18px}
+.save-hero .amt{font-size:clamp(44px,9vw,68px);font-weight:700;line-height:1.05;margin:8px 0;font-variant-numeric:tabular-nums;color:var(--g)}
+.save-hero .yrs{font-size:19px}
+.cmp{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:10px 14px;align-items:center;margin-top:22px;text-align:left;font-size:17px}
+.cmp .b{height:26px;border-radius:6px;background:var(--bar)}
+.cmp .b.hp{background:var(--g)}
+.cmp .v{font-weight:700;font-variant-numeric:tabular-nums}
+.sure{display:flex;gap:6px;justify-content:center;margin-top:18px;align-items:center;font-size:16px;color:var(--muted)}
+.sure i{width:26px;height:8px;border-radius:4px;background:var(--line)}
+.sure i.on{background:var(--accent)}
+
+/* ---------- company desk ---------- */
+.desk{display:grid;grid-template-columns:330px minmax(0,1fr);min-height:calc(100vh - 66px)}
+@media (max-width:900px){.desk{grid-template-columns:1fr}}
+.leads{border-right:1px solid var(--line);background:var(--panel);padding:16px;display:flex;flex-direction:column;gap:8px;font-size:16px}
+.leads h2{font-size:18px;margin:4px 4px 6px}
+.lead-btn{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:10px 12px;cursor:pointer}
+.lead-btn[aria-current="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.lead-btn small{display:block;color:var(--muted);font-size:13.5px}
+.lead-btn{grid-template-columns:minmax(0,1fr) auto!important}
+.dot{width:14px;height:14px;border-radius:50%;display:inline-block;vertical-align:middle}
+.dot.green{background:var(--g)} .dot.yellow{background:var(--y)} .dot.red{background:var(--r)}
+.score{font-weight:700;font-variant-numeric:tabular-nums;font-size:15px;border-radius:8px;padding:3px 8px;background:var(--soft)}
+.detail{padding-block:22px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font-size:16px;min-width:0}
+@media (min-width:900px){.detail{padding-left:32px;padding-right:32px}}
+.d-head{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;margin-bottom:18px}
+.d-head h1{margin:0;font-size:30px}
+.d-head .meta{color:var(--muted)}
+.decision{margin-left:auto;font-weight:700;font-size:20px;border-radius:12px;padding:10px 16px}
+.decision{background:var(--accent);color:var(--on-accent)}
+.suit{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;color:var(--muted)}
+.prio{font-weight:700;font-size:13px;border-radius:8px;padding:3px 8px;white-space:nowrap}
+.prio{background:var(--accent);color:var(--on-accent)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:1100px){.grid2{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px;min-width:0}
+.panel h3{margin:0 0 4px;font-size:18px}
+.panel .sub{color:var(--muted);margin:0 0 14px;font-size:14.5px}
+.gauge{height:12px;border-radius:6px;background:var(--soft);overflow:hidden;margin:6px 0 4px}
+.gauge i{display:block;height:100%}
+.kv{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;font-variant-numeric:tabular-nums;margin:0}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:700;text-align:right}
+.reasons{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:4px}
+.list{margin:0;padding-left:20px;display:grid;gap:4px}
+.f-item{padding:8px 10px;border-radius:8px;margin-bottom:6px;background:var(--soft)}
+.f-item.info{background:var(--soft)} .f-item.check{background:var(--y-bg)} .f-item.blocker{background:var(--r-bg)} .f-item.ok{background:var(--g-bg)}
+.f-item p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+.prices{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.prices label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--muted)}
+.prices input{border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--soft);font-size:16px;color:var(--ink)}
+.contact-box{background:var(--accent-soft);border-radius:12px;padding:12px 14px;margin-bottom:16px}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:15px}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:700;font-size:13.5px}
+dialog{border:0;border-radius:18px;padding:0;max-width:520px;width:calc(100% - 32px);background:var(--panel);color:var(--ink)}
+dialog::backdrop{background:rgba(10,18,24,.5)}
+.dlg{padding:22px;display:grid;gap:14px;font-size:16px}
+.dlg h2{margin:0}
+.dlg p{margin:0;color:var(--muted)}
+.dlg label{display:grid;gap:4px;font-weight:700}
+.dlg input{border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--soft);width:100%}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="bar-top">
+  <div class="logo"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15 16 5l12 10"/><path d="M7 13v14h18V13"/><path d="M13 27v-7h6v7"/></svg>Heat Pump Ready?</div>
+  <div class="sp"></div>
+  <button class="link" id="restartBtn" type="button" hidden>Start over</button>
+  <button class="link" id="installerBtn" type="button">Installer login</button>
+</header>
+<div class="progress" aria-hidden="true"><i id="prog"></i></div>
+
+<!-- ============ CUSTOMER ============ -->
+<main id="customer">
+  <section class="col" id="v-start">
+    <div class="hero">
+      <h1>Is your home ready for a heat pump?</h1>
+      <p>Answer a few simple questions and get an honest first answer, including what we can't tell yet.</p>
+      <button class="btn primary wide" id="startBtn" type="button">Start the check</button>
+      <ul class="promises"><li>About 3 minutes</li><li>No sign-up</li><li>"Not sure" is always an answer</li></ul>
+    </div>
+    <div class="examples">Demo: see the result for a real example home
+      <div id="exampleBtns"></div>
+    </div>
+  </section>
+
+  <section class="col" id="v-q" hidden>
+    <div class="step-count" id="qCount"></div>
+    <h2 class="q-title" id="qTitle"></h2>
+    <p class="q-help" id="qHelp"></p>
+    <div id="qBody"></div>
+    <div class="nav">
+      <button class="btn ghost back" id="qBack" type="button" aria-label="Back">←</button>
+      <button class="btn wide" id="qNext" type="button">Next →</button>
+    </div>
+  </section>
+
+  <section class="col" id="v-result" hidden></section>
+
+  <section class="col" id="v-next" hidden>
+    <h2 class="q-title">What would you like to do next?</h2>
+    <p class="q-help">Both are free and without obligation.</p>
+    <div class="choices">
+      <button class="choice" type="button" id="chooseCall">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 6h-4a4 4 0 0 0-4 4c0 17.7 14.3 32 32 32a4 4 0 0 0 4-4v-4l-9-4-4 4c-5-2-9-6-11-11l4-4-4-9z"/></svg>
+        <h3>Have an expert call me</h3>
+        <p>Leave your phone number. A heating expert calls you to talk through your result and answer your questions.</p>
+        <span class="go">Request a call →</span>
+      </button>
+      <button class="choice" type="button" id="chooseSave">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="24" r="18"/><path d="M30 16a9 9 0 1 0 0 16M14 21h12M14 27h12"/></svg>
+        <h3>Get my exact savings</h3>
+        <p>Add your exact details and a few photos (energy bill, pipes under a radiator, boiler) for a precise calculation.</p>
+        <span class="go">About 2 minutes →</span>
+      </button>
+    </div>
+    <div class="share"><button class="btn ghost" type="button" id="shareBtn">Copy my result to send to family</button></div>
+    <p class="note" id="shareNote" aria-live="polite"></p>
+    <div class="nav"><button class="btn ghost back" type="button" id="nextBack" aria-label="Back">←</button></div>
+  </section>
+
+  <section class="col" id="v-contact" hidden>
+    <h2 class="q-title">When can we call you?</h2>
+    <p class="q-help" id="contactHelp">A heating expert will call you to talk through your result. No obligation.</p>
+    <form class="form" id="contactForm" novalidate>
+      <label>Your name<input type="text" id="cName" autocomplete="name"></label>
+      <label>Phone number<input type="tel" id="cPhone" autocomplete="tel"></label>
+      <label>Email <span>optional, for a copy of your result</span><input type="email" id="cEmail" autocomplete="email"></label>
+      <label>Postcode<input type="text" id="cZip" inputmode="numeric" autocomplete="postal-code" maxlength="5"></label>
+      <div><div style="font-weight:700;margin-bottom:8px">Best time to call</div>
+        <div class="seg" id="cTime"><button type="button" data-v="morning" aria-pressed="false">Morning</button><button type="button" data-v="afternoon" aria-pressed="true">Afternoon</button><button type="button" data-v="evening" aria-pressed="false">Evening</button></div></div>
+      <label class="consent"><input type="checkbox" id="cConsent"> nuuEnergy may contact me about this heat pump check. I can withdraw this at any time.</label>
+      <div class="err" id="cErr" aria-live="polite"></div>
+      <div class="nav" style="margin-top:4px"><button class="btn ghost back" type="button" id="contactBack" aria-label="Back">←</button><button class="btn primary wide" type="submit">Request my call</button></div>
+    </form>
+    <p class="note">Prototype: your details are kept only in this browser for the demo.</p>
+  </section>
+
+  <section class="col" id="v-thanks" hidden></section>
+
+  <section class="col" id="v-details" hidden>
+    <h2 class="q-title">Your exact details</h2>
+    <p class="q-help">The more you add, the more precise your savings. Everything is optional.</p>
+    <div class="form" id="moreDetails" style="margin-bottom:16px"></div>
+    <div class="photos" id="photoCards"></div>
+    <div class="nav"><button class="btn ghost back" type="button" id="detailsBack" aria-label="Back">←</button><button class="btn primary wide" type="button" id="calcBtn">Calculate my savings</button></div>
+  </section>
+
+  <section class="col" id="v-savings" hidden></section>
+</main>
+
+<!-- ============ COMPANY ============ -->
+<main id="company" hidden>
+  <section class="col" id="v-login">
+    <h2 class="q-title">Installer login</h2>
+    <p class="q-help">For nuuEnergy only. Every lead with a recommendation: is a visit worth it, and is the job profitable?</p>
+    <form class="form" id="loginForm" style="max-width:420px;margin:0 auto" novalidate>
+      <label>PIN<input type="password" id="pin" inputmode="numeric" autocomplete="off"></label>
+      <div class="err" id="pinErr" aria-live="polite"></div>
+      <button class="btn primary" type="submit">Log in</button>
+      <button class="btn ghost" type="button" id="loginCancel">Back to the customer check</button>
+      <p class="note" style="margin:0">Demo PIN: 2026</p>
+    </form>
+  </section>
+  <section id="v-desk" hidden>
+    <div class="desk">
+      <aside class="leads">
+        <h2>Leads</h2>
+        <div id="leadList" style="display:grid;gap:8px"></div>
+        <button class="link" type="button" id="aiSettingsBtn" style="text-align:left;margin-top:12px">Photo reading settings</button>
+        <button class="link" type="button" id="logoutBtn" style="text-align:left">Log out</button>
+      </aside>
+      <div class="detail" id="leadDetail"></div>
+    </div>
+  </section>
+</main>
+
+<dialog id="aiDlg">
+  <form method="dialog" class="dlg">
+    <h2>Photo reading</h2>
+    <p id="aiDlgText"></p>
+    <label>Claude API key<input type="password" id="apiKey" placeholder="sk-ant-…"></label>
+    <label>Model<input type="text" id="apiModel" value="claude-sonnet-5-5"></label>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn ghost" value="cancel">Cancel</button><button class="btn primary" value="save">Save</button></div>
+  </form>
+</dialog>
+
+<script>/*__DATA__*/</script>
+<script>/*__ENGINE__*/</script>
+<script>
+(() => {
+'use strict';
+const E = window.HPEngine;
+const DATA = window.HP_DATA;
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const eur = (x) => '€' + Math.round(x).toLocaleString('en');
+const r50 = (x) => Math.round(x / 50) * 50;
+const fmt1 = (x) => (Math.round(x * 10) / 10).toLocaleString('en');
+
+/* ================= icons ================= */
+const I = (d) => `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICON = {
+  radiator: I('<path d="M8 12v26M40 12v26"/><rect x="11" y="10" width="5" height="30" rx="2"/><rect x="18" y="10" width="5" height="30" rx="2"/><rect x="25" y="10" width="5" height="30" rx="2"/><rect x="32" y="10" width="5" height="30" rx="2"/>'),
+  floor: I('<path d="M6 30h36M6 38h36"/><path d="M10 34c3-3 5 3 8 0s5 3 8 0 5 3 8 0 5 3 6 0"/><path d="M16 8c-2 3 2 5 0 8M24 8c-2 3 2 5 0 8M32 8c-2 3 2 5 0 8"/>'),
+  both: I('<path d="M6 40h36"/><path d="M9 36c3-2 5 2 8 0s5 2 8 0 5 2 8 0 5 2 6 0"/><rect x="10" y="10" width="4" height="18" rx="2"/><rect x="16" y="10" width="4" height="18" rx="2"/><rect x="22" y="10" width="4" height="18" rx="2"/>'),
+  unsure: I('<circle cx="24" cy="24" r="17"/><path d="M19 19a5 5 0 1 1 7 4.6c-1.3.6-2 1.6-2 3V28"/><path d="M24 34h.01"/>'),
+  detached: I('<path d="M8 22 24 9l16 13"/><path d="M12 19v20h24V19"/><path d="M21 39v-9h6v9"/>'),
+  semi: I('<path d="M4 22 14 13l10 9 10-9 10 9"/><path d="M7 20v19h34V20"/><path d="M24 22v17"/><path d="M12 39v-7h4v7"/>'),
+  endTerrace: I('<path d="M3 39V21l7-7 7 7 7-7 7 7 7-7 7 7v18z"/><path d="M17 21v18M31 21v18"/><rect x="34" y="27" width="7" height="12" fill="currentColor" opacity=".25"/>'),
+  midTerrace: I('<path d="M3 39V21l7-7 7 7 7-7 7 7 7-7 7 7v18z"/><path d="M17 21v18M31 21v18"/><rect x="20" y="27" width="8" height="12" fill="currentColor" opacity=".25"/>'),
+  gas: I('<path d="M24 6c2 7 10 11 10 20a10 10 0 0 1-20 0c0-5 3-8 5-11 1 4 3 5 5 5-2-5-1-10 0-14z"/>'),
+  oil: I('<ellipse cx="24" cy="10" rx="12" ry="4"/><path d="M12 10v28c0 2.2 5.4 4 12 4s12-1.8 12-4V10M12 20c0 2.2 5.4 4 12 4s12-1.8 12-4M12 30c0 2.2 5.4 4 12 4s12-1.8 12-4"/>'),
+  lpg: I('<rect x="10" y="16" width="28" height="18" rx="9"/><path d="M24 16v-5M20 11h8M14 34l-2 6M34 34l2 6"/>'),
+  district: I('<path d="M6 30h36M6 38h36"/><path d="M14 30v-8a4 4 0 0 1 8 0v8M26 30V16a4 4 0 0 1 8 0v14"/><path d="M18 10c-1 2 1 3 0 5M30 6c-1 2 1 3 0 5"/>'),
+  other: I('<path d="M26 5 12 27h11l-2 16 14-22H24z"/>'),
+  camera: I('<path d="M6 16h8l3-5h14l3 5h8v24H6z"/><circle cx="24" cy="27" r="7"/>'),
+  bill: I('<path d="M12 5h18l8 8v30H12z"/><path d="M30 5v8h8M17 22h14M17 29h14M17 36h8"/>'),
+  pipes: I('<rect x="10" y="6" width="28" height="20" rx="2"/><path d="M16 26v16M32 26v16M16 34h16"/>'),
+  boiler: I('<rect x="12" y="5" width="24" height="38" rx="3"/><rect x="17" y="11" width="14" height="8" rx="1"/><path d="M19 30h10M20 43v3M28 43v3"/>'),
+  wall: I('<path d="M6 42h36M10 42V12h28v30"/><rect x="24" y="28" width="12" height="12" rx="1"/><circle cx="30" cy="34" r="3.5"/>'),
+  twoPipe: I('<rect x="9" y="8" width="30" height="20" rx="2"/><path d="M15 28v16M33 28v16M4 44h40"/><circle cx="15" cy="31" r="2"/><circle cx="33" cy="31" r="2"/>'),
+  onePipe: I('<rect x="6" y="8" width="20" height="18" rx="2"/><rect x="34" y="8" width="12" height="18" rx="2" opacity=".5"/><path d="M2 36h44M10 26v10M22 26v10M38 26v10"/><path d="M42 30l4 6-4 6" opacity=".6"/>'),
+};
+
+/* ================= state ================= */
+const A = {};      // quick-check answers
+const PHOTO = {};  // what the photos told us
+const PRICE_PER_KWH = { gas: 0.11, oil: 0.17, lpg: 0.11, district: 0.11, other: 0.11 };
+let R = null, CTX = null, PATH = 'call';
+let authed = false; // installer session
+
+function show(id) {
+  $$('#customer > section, #company > section').forEach((s) => (s.hidden = s.id !== id));
+  $('#customer').hidden = !$('#customer > #' + id);
+  $('#company').hidden = !$('#company > #' + id);
+  $('#restartBtn').hidden = id === 'v-start' || !$('#company').hidden;
+  $('#installerBtn').textContent = authed ? 'Log out' : id === 'v-login' ? 'Back to home' : 'Installer login';
+  window.scrollTo({ top: 0 });
+}
+function setProg(p) { $('#prog').style.width = Math.round(p * 100) + '%'; }
+
+/* ================= the questions ================= */
+const USAGE_RANGES = [[40, 75, 'Under €75'], [75, 125, '€75 – 125'], [125, 175, '€125 – 175'], [175, 250, '€175 – 250'], [250, 350, 'Over €250']];
+const AREA_R = [[70, 100], [100, 150], [150, 200], [200, 260]];
+const Q = [
+  { id: 'heating', title: 'How are your rooms heated?', help: 'This tells us how warm the water in your heating has to be.', type: 'tiles',
+    options: [{ v: 'radiators', label: 'Radiators', icon: 'radiator' }, { v: 'underfloor', label: 'Underfloor heating', icon: 'floor' }, { v: 'mixed', label: 'Both', icon: 'both' }, { v: 'unsure', label: 'Not sure', icon: 'unsure' }],
+    tip: 'Good to know: most heat pumps work fine with normal radiators. You don\'t need underfloor heating.' },
+  { id: 'house', title: 'What type of house is it?', help: 'Houses joined to a neighbour lose less heat through their walls.', type: 'tiles',
+    options: [{ v: 'detached', label: 'Detached house', icon: 'detached' }, { v: 'semi', label: 'Semi-detached', icon: 'semi' }, { v: 'end', label: 'End of terrace', icon: 'endTerrace' }, { v: 'mid', label: 'Mid-terrace', icon: 'midTerrace' }] },
+  { id: 'fuel', title: 'What do you heat with today?', help: 'We compare your running costs today with a heat pump.', type: 'tiles',
+    options: [{ v: 'gas', label: 'Natural gas', icon: 'gas' }, { v: 'oil', label: 'Heating oil', icon: 'oil' }, { v: 'lpg', label: 'Liquid gas (LPG)', icon: 'lpg' }, { v: 'district', label: 'District heating', icon: 'district' }, { v: 'other', label: 'Something else', icon: 'other' }] },
+  { id: 'usage', title: 'How much do you spend on heating?', help: 'Choose whatever is easiest. Your monthly payment is fine.', type: 'usage' },
+  { id: 'built', title: 'When was the house built?', help: 'Type the year. If you\'re not sure, a rough period is enough.', type: 'built' },
+  { id: 'area', title: 'How big is your living space?', help: 'The heated rooms. Roughly is fine.', type: 'area' },
+  { id: 'pipes', title: 'Look under one of your radiators', help: 'How do the pipes connect? This matters for how well a heat pump works.', type: 'pipes', skip: () => A.heating === 'underfloor' },
+];
+const visibleQ = () => Q.filter((q) => !(q.skip && q.skip()));
+let qi = 0;
+
+function tilesHTML(q, val) {
+  return `<div class="tiles${q.type.includes('small') ? ' small' : ''}">${q.options.map((o) => `
+    <button type="button" class="tile" data-v="${o.v}" aria-pressed="${String(val) === String(o.v)}">${o.icon ? ICON[o.icon] : ''}${esc(o.label)}${o.small ? `<small>${esc(o.small)}</small>` : ''}</button>`).join('')}</div>`;
+}
+function bindTiles(root, cb) {
+  $$('.tile', root).forEach((t) => t.addEventListener('click', () => {
+    $$('.tile', t.parentElement).forEach((x) => x.setAttribute('aria-pressed', x === t));
+    cb(t.dataset.v);
+  }));
+}
+function segHTML(name, opts, val) { return `<div class="seg" data-name="${name}">${opts.map(([v, l]) => `<button type="button" data-v="${v}" aria-pressed="${String(val) === String(v)}">${l}</button>`).join('')}</div>`; }
+function bindSegs(root, cb) {
+  $$('.seg[data-name]', root).forEach((s) => $$('button', s).forEach((b) => b.addEventListener('click', () => {
+    $$('button', s).forEach((x) => x.setAttribute('aria-pressed', x === b));
+    cb(s.dataset.name, b.dataset.v);
+  })));
+}
+
+function renderQ() {
+  const vq = visibleQ();
+  const q = vq[qi];
+  $('#qCount').textContent = `Question ${qi + 1} of ${vq.length}`;
+  $('#qTitle').textContent = q.title;
+  $('#qHelp').textContent = q.help || '';
+  setProg(qi / (vq.length + 1));
+  const body = $('#qBody');
+  let valid = () => A[q.id] !== undefined;
+  const update = () => { $('#qNext').disabled = !valid(); };
+
+  if (q.type.startsWith('tiles')) {
+    body.innerHTML = tilesHTML(q, A[q.id]) + (q.tip ? `<div class="tip"><span aria-hidden="true">💡</span><span>${esc(q.tip)}</span></div>` : '');
+    bindTiles(body, (v) => { A[q.id] = isNaN(+v) ? v : +v; update(); });
+  }
+
+  if (q.type === 'usage') {
+    A.usageMode = A.usageMode || (A.fuel === 'oil' ? 'litres' : 'payment');
+    const modes = [['payment', A.fuel === 'oil' ? 'Cost per month' : 'Monthly payment']];
+    modes.push(['kwh', 'kWh per year']);
+    if (A.fuel === 'oil') modes.push(['litres', 'Litres of oil']);
+    modes.push(['unsure', 'Not sure']);
+    const draw = () => {
+      const m = A.usageMode;
+      let inner = '';
+      if (m === 'payment') {
+        if (A.usagePay == null) A.usagePay = 120;
+        inner = `<div class="num-wrap"><div class="big-num" id="uVal">${eur(A.usagePay)}<small>per month</small></div>
+          <input type="range" id="uRange" min="20" max="500" step="5" value="${A.usagePay}" aria-label="Monthly payment in euros">
+          <div style="color:var(--muted);font-size:16px">${A.fuel === 'oil' ? 'Your yearly oil cost divided by 12.' : 'The amount you pay your energy supplier every month for heating.'}</div></div>`;
+      }
+      if (m === 'kwh') inner = `<div class="num-wrap"><input class="num-input" type="number" id="uKwh" min="1000" max="100000" step="100" value="${A.usageKwh || ''}" placeholder="e.g. 18000" aria-label="kWh per year"><div style="color:var(--muted);font-size:16px">kWh per year, from the first page of your annual bill.</div></div>`;
+      if (m === 'litres') inner = `<div class="num-wrap"><input class="num-input" type="number" id="uL" min="100" max="10000" step="50" value="${A.usageLitres || ''}" placeholder="e.g. 2500" aria-label="Litres of oil per year"><div style="color:var(--muted);font-size:16px">Litres of heating oil per year.</div></div>`;
+      if (m === 'unsure') inner = `<p class="sub-q">Roughly what do you pay per month?</p>${tilesHTML({ type: 'tiles small', options: [...USAGE_RANGES.map((r, i) => ({ v: i, label: r[2] })), { v: 'none', label: 'No idea at all' }] }, A.usageRange)}`;
+      const billCard = `<div class="photo${PHOTO.bill ? ' done' : ''}" style="margin-top:18px">
+          <div class="thumb">${ICON.bill}</div>
+          <div><h3>Have your energy bill? <span style="font-weight:400;color:var(--muted);font-size:16px">(optional)</span></h3><p>Add a photo or PDF of the page with your yearly use. We read the exact amount, which beats any estimate.</p>
+            <label class="up">${ICON.camera} Add photo or PDF<input type="file" accept="image/*,application/pdf" data-k="bill"></label>
+            <div class="read-out">${PHOTO.bill && PHOTO.bill.annual_consumption_kwh ? `We read <b>${Math.round(PHOTO.bill.annual_consumption_kwh).toLocaleString('en')} kWh</b> per year. This replaces the estimate above.` : ''}</div></div>
+        </div>`;
+      body.innerHTML = `<div style="display:flex;justify-content:center;margin-bottom:18px">${segHTML('mode', modes, m)}</div>${inner}${billCard}`;
+      $('.photo input[type=file]', body).addEventListener('change', (e) => onPhoto(e.target));
+      bindSegs(body, (_, v) => { A.usageMode = v; draw(); });
+      const ur = $('#uRange', body); if (ur) ur.addEventListener('input', () => { A.usagePay = +ur.value; $('#uVal', body).innerHTML = `${eur(A.usagePay)}<small>per month</small>`; });
+      const uk = $('#uKwh', body); if (uk) uk.addEventListener('input', () => { A.usageKwh = +uk.value || null; update(); });
+      const ul = $('#uL', body); if (ul) ul.addEventListener('input', () => { A.usageLitres = +ul.value || null; update(); });
+      if (m === 'unsure') bindTiles(body, (v) => { A.usageRange = v === 'none' ? 'none' : +v; update(); });
+      update();
+    };
+    valid = () => (A.usageMode === 'payment' && A.usagePay) || (A.usageMode === 'kwh' && A.usageKwh >= 1000) || (A.usageMode === 'litres' && A.usageLitres >= 100) || (A.usageMode === 'unsure' && A.usageRange !== undefined);
+    draw();
+  }
+
+  if (q.type === 'built') {
+    A.yearMode = A.yearMode || 'exact';
+    const thisYear = new Date().getFullYear();
+    const yearExact = `<div class="num-wrap"><input class="num-input" type="number" id="yIn" min="1800" max="${thisYear}" placeholder="e.g. 1987" value="${A.yearMode === 'exact' && typeof A.year === 'number' ? A.year : ''}" aria-label="Year the house was built">
+        <button class="btn ghost" type="button" id="yUnsure">I'm not sure</button></div>`;
+    const yearTiles = `<div class="tiles small" data-group="year">${[[1965, 'Before 1979'], [1990, '1979 – 2001'], [2008, '2002 – 2015'], [2019, '2016 or later'], ['unsure', 'No idea']].map(([v, l]) => `<button type="button" class="tile" data-v="${v}" aria-pressed="${String(A.year) === String(v)}">${l}</button>`).join('')}</div>
+        <div style="text-align:center;margin-top:12px"><button class="link" type="button" id="yExact">I know the exact year</button></div>`;
+    body.innerHTML = `<div id="yearBox">${A.yearMode === 'exact' ? yearExact : yearTiles}</div>
+      <p class="sub-q">Has it been renovated since?</p>
+      <div style="display:flex;justify-content:center">${segHTML('renov', [['yes', 'Yes'], ['no', 'No'], ['unsure', 'Not sure']], A.renov)}</div>
+      <div id="renovParts" ${A.renov === 'yes' ? '' : 'hidden'}>
+        <p class="sub-q" style="font-size:18px">What was renovated? <span style="font-weight:400;color:var(--muted)">Tap all that apply</span></p>
+        <div class="seg" style="justify-content:center">${[['windows', 'Windows'], ['walls', 'Outside walls (facade)'], ['roof', 'Roof']].map(([k2, l]) => `<button type="button" data-part="${k2}" aria-pressed="${!!(A.renovParts && A.renovParts[k2])}">${l}</button>`).join('')}</div>
+      </div>
+      <div class="tip"><span aria-hidden="true">💡</span><span>Good to know: you don't need a full renovation first. Heat pumps work in many older homes.</span></div>`;
+    const bindYear = () => {
+      const yi = $('#yIn', body);
+      if (yi) {
+        yi.addEventListener('input', () => { const v = +yi.value; A.year = v >= 1800 && v <= thisYear ? v : undefined; update(); });
+        $('#yUnsure', body).addEventListener('click', () => { A.yearMode = 'range'; A.year = undefined; $('#yearBox', body).innerHTML = yearTiles; bindYear(); update(); });
+      }
+      $$('[data-group=year] .tile', body).forEach((t) => t.addEventListener('click', () => {
+        $$('[data-group=year] .tile', body).forEach((x) => x.setAttribute('aria-pressed', x === t));
+        A.year = isNaN(+t.dataset.v) ? t.dataset.v : +t.dataset.v; update();
+      }));
+      const ye = $('#yExact', body);
+      if (ye) ye.addEventListener('click', () => { A.yearMode = 'exact'; A.year = undefined; $('#yearBox', body).innerHTML = yearExact; bindYear(); update(); });
+    };
+    bindYear();
+    bindSegs(body, (_, v) => { A.renov = v; $('#renovParts', body).hidden = v !== 'yes'; update(); });
+    $$('[data-part]', body).forEach((b) => b.addEventListener('click', () => {
+      A.renovParts = A.renovParts || {};
+      A.renovParts[b.dataset.part] = !A.renovParts[b.dataset.part];
+      b.setAttribute('aria-pressed', A.renovParts[b.dataset.part]); update();
+    }));
+    valid = () => A.year !== undefined && A.renov !== undefined && (A.renov !== 'yes' || Object.values(A.renovParts || {}).some(Boolean));
+  }
+
+  if (q.type === 'pipes') {
+    A.rad = A.rad || {};
+    const opts = [['two-pipe', 'Two pipes go straight down into the floor or wall', 'twoPipe'], ['single-pipe', 'One pipe runs along the wall to the next radiator', 'onePipe'], ['unsure', 'Not sure', 'unsure']];
+    body.innerHTML = `<div class="tiles" data-group="pipe">${opts.map(([v, l, ic]) => `<button type="button" class="tile" data-v="${v}" aria-pressed="${A.rad.pipe === v}" style="font-size:17px">${ICON[ic]}${l}</button>`).join('')}</div>
+      <div id="pipePhoto" ${A.rad.pipe === 'unsure' ? '' : 'hidden'} style="margin-top:18px">
+        <div class="photo${PHOTO.pipes ? ' done' : ''}">
+          <div class="thumb">${ICON.camera}</div>
+          <div><h3>Not sure? Send us a photo</h3><p>Take a photo of the pipes under a radiator, from the side. We'll check it for you.</p>
+            <label class="up">${ICON.camera} Add photo<input type="file" accept="image/*" capture="environment" data-k="pipes"></label>
+            <div class="read-out"></div></div>
+        </div>
+      </div>`;
+    $$('[data-group=pipe] .tile', body).forEach((t) => t.addEventListener('click', () => {
+      $$('[data-group=pipe] .tile', body).forEach((x) => x.setAttribute('aria-pressed', x === t));
+      A.rad.pipe = t.dataset.v; $('#pipePhoto', body).hidden = t.dataset.v !== 'unsure'; update();
+    }));
+    $('#pipePhoto input[type=file]', body).addEventListener('change', (e) => onPhoto(e.target));
+    valid = () => !!A.rad.pipe;
+  }
+
+  if (q.type === 'insulation') {
+    A.ins = A.ins || { walls: null, roof: null, windows: null };
+    const rows = [['walls', 'Outside walls insulated'], ['roof', 'Roof or top floor insulated'], ['windows', 'Windows replaced since 2000']];
+    body.innerHTML = rows.map(([k, l]) => `<div class="row-q"><b>${l}</b>${segHTML(k, [['yes', 'Yes'], ['no', 'No'], ['unsure', 'Not sure']], A.ins[k])}</div>`).join('');
+    bindSegs(body, (k, v) => { A.ins[k] = v; });
+    valid = () => true;
+  }
+
+  if (q.type === 'area') {
+    A.areaMode = A.areaMode || 'slider';
+    const draw = () => {
+      if (A.areaMode === 'slider') {
+        if (A.area == null) A.area = 130;
+        body.innerHTML = `<div class="num-wrap"><div class="big-num" id="aVal">${A.area}<small>m²</small></div>
+          <input type="range" id="aRange" min="40" max="350" step="5" value="${A.area}" aria-label="Living space in square metres"></div>
+          <div class="or">or</div><div style="text-align:center"><button class="btn ghost" type="button" id="aUnsure">I'm not sure</button></div>${zipField()}`;
+        const ar = $('#aRange', body); ar.addEventListener('input', () => { A.area = +ar.value; $('#aVal', body).innerHTML = `${A.area}<small>m²</small>`; });
+        $('#aUnsure', body).addEventListener('click', () => { A.areaMode = 'unsure'; draw(); });
+      } else {
+        body.innerHTML = tilesHTML({ type: 'tiles small', options: [{ v: 0, label: 'Under 100 m²', small: 'a small house' }, { v: 1, label: '100 – 150 m²', small: 'a typical family house' }, { v: 2, label: '150 – 200 m²', small: 'a large house' }, { v: 3, label: 'Over 200 m²', small: 'a very large house' }] }, A.areaRange)
+          + `<div class="or">or</div><div style="text-align:center"><button class="btn ghost" type="button" id="aExact">I know the size</button></div>${zipField()}`;
+        bindTiles(body, (v) => { A.areaRange = +v; update(); });
+        $('#aExact', body).addEventListener('click', () => { A.areaMode = 'slider'; draw(); });
+      }
+      const z = $('#zipIn', body); if (z) z.addEventListener('input', () => { A.zip = z.value.replace(/\D/g, '').slice(0, 5); });
+      update();
+    };
+    valid = () => (A.areaMode === 'slider' && A.area) || (A.areaMode === 'unsure' && A.areaRange !== undefined);
+    draw();
+  }
+
+  if (q.type === 'radiators') {
+    A.rad = A.rad || { count: null, size: null, pipe: null };
+    body.innerHTML = `
+      <p class="sub-q" style="margin-top:0">How many radiators are there?</p>
+      <div style="display:flex;justify-content:center">${segHTML('count', [['3', '1 – 5'], ['8', '6 – 10'], ['13', '11 – 15'], ['18', '16 – 20'], ['24', 'More'], ['unsure', 'Not sure']], A.rad.count)}</div>
+      <p class="sub-q">How thick are most of them?</p>
+      <div class="tiles small" data-group="size">${[['11', 'Thin', 'one flat panel'], ['22', 'Medium', 'two panels'], ['33', 'Thick', 'three panels'], ['unsure', 'Not sure', '']].map(([v, l, s]) => `<button type="button" class="tile" data-v="${v}" aria-pressed="${A.rad.size === v}">${l}${s ? `<small>${s}</small>` : ''}</button>`).join('')}</div>
+      <p class="sub-q">Look at the pipes under a radiator</p>
+      <div class="tiles small" data-group="pipe">${[['two-pipe', 'Two pipes go straight into the floor or wall'], ['single-pipe', 'One pipe runs along the wall to the next radiator'], ['unsure', 'Not sure']].map(([v, l]) => `<button type="button" class="tile" data-v="${v}" aria-pressed="${A.rad.pipe === v}" style="font-size:17px">${l}</button>`).join('')}</div>`;
+    bindSegs(body, (k, v) => { A.rad.count = v; });
+    $$('[data-group]', body).forEach((g) => $$('.tile', g).forEach((t) => t.addEventListener('click', () => {
+      $$('.tile', g).forEach((x) => x.setAttribute('aria-pressed', x === t)); A.rad[g.dataset.group] = t.dataset.v;
+    })));
+    valid = () => true;
+  }
+
+  if (q.type === 'extras') {
+    A.ex = A.ex || {};
+    const items = [['stove', 'A wood stove or fireplace we use a lot'], ['solar', 'Solar panels that heat our water'], ['unused', 'Some rooms are not used or heated'], ['sepwater', 'Hot water comes from a separate heater']];
+    body.innerHTML = `<div class="tiles small">${items.map(([k, l]) => `<button type="button" class="tile" data-v="${k}" aria-pressed="${!!A.ex[k]}" style="font-size:17px">${l}</button>`).join('')}</div>`;
+    $$('.tile', body).forEach((t) => t.addEventListener('click', () => { const k = t.dataset.v; A.ex[k] = !A.ex[k]; t.setAttribute('aria-pressed', A.ex[k]); }));
+    valid = () => true;
+  }
+
+  $('#qNext').textContent = qi === vq.length - 1 ? 'See my result →' : 'Next →';
+  $('#qNext').onclick = () => { if (valid()) next(); };
+  update();
+}
+function next() { const vq = visibleQ(); if (qi < vq.length - 1) { qi++; renderQ(); } else finishQuick(); }
+$('#qBack').addEventListener('click', () => { if (qi > 0) { qi--; renderQ(); } else show('v-start'); });
+
+// The postcode gives the local climate. Approximate coldest-day design temperatures by postcode region (DIN/TS 12831 zones, rounded).
+const ZIP_T = { 0: -14, 1: -14, 2: -12, 3: -14, 4: -10, 5: -10, 6: -12, 7: -12, 8: -16, 9: -16 };
+function zipInfo(zip) { if (!zip || zip.length < 2) return ''; const t = ZIP_T[zip[0]]; return t == null ? '' : `the coldest days reach about ${t} °C. A technician sizes the heat pump for this.`; }
+function zipField() { return `<div style="max-width:320px;margin:22px auto 0;text-align:center"><label style="display:grid;gap:6px;font-weight:700;font-size:17px">Your postcode <span style="font-weight:400;color:var(--muted);font-size:15px">optional, for your local climate</span><input id="zipIn" type="text" inputmode="numeric" maxlength="5" value="${esc(A.zip || '')}" style="border:2px solid var(--line);border-radius:12px;padding:12px;font-size:20px;text-align:center;background:var(--soft)" aria-label="Postcode"></label></div>`; }
+
+/* ================= answers → building ================= */
+function toBuilding(src = A, photo = PHOTO) {
+  const meta = { known: 0, unsure: 0, photos: 0, unsureList: [], notAsked: [] };
+  const k = () => meta.known++;
+  const u = (what) => { meta.unsure++; meta.unsureList.push(what); };
+  const na = (what) => { meta.unsure++; meta.notAsked.push(what); }; // not asked yet: counts against data confidence, but isn't shown as "you said not sure"
+  const fuel = photo.bill && photo.bill.energy_carrier ? (photo.bill.lpg ? 'lpg' : photo.bill.energy_carrier) : src.fuel;
+  const carrier = { gas: 'gas', lpg: 'gas', oil: 'oil', district: 'district', electric: 'electric', other: null }[fuel] ?? null;
+  const price = PRICE_PER_KWH[fuel] || 0.11;
+
+  let kwh = null;
+  if (photo.bill && photo.bill.annual_consumption_kwh) { kwh = photo.bill.annual_consumption_kwh; meta.photos++; }
+  else if (src.usageMode === 'kwh' && src.usageKwh) { kwh = src.usageKwh; k(); }
+  else if (src.usageMode === 'litres' && src.usageLitres) { kwh = src.usageLitres * 10; k(); }
+  else if (src.usageMode === 'payment' && src.usagePay) { const y = src.usagePay * 12; kwh = { lo: (y * 0.85) / price, hi: y / price }; k(); } // up to ~15 % of the payment is fixed fees
+  else if (src.usageMode === 'unsure' && src.usageRange != null && src.usageRange !== 'none') { const r = USAGE_RANGES[src.usageRange]; kwh = { lo: (r[0] * 12 * 0.85) / price, hi: (r[1] * 12) / price }; u('energy use'); }
+  else u('energy use');
+
+  let year = src.year;
+  if (year === 'unsure' || year == null) { year = { lo: 1960, hi: 2005 }; u('year built'); } else k();
+
+  let area = null;
+  if (src.areaMode === 'unsure') { const r = AREA_R[src.areaRange ?? 1]; area = { lo: r[0], hi: r[1] }; u('living space'); } else if (src.area) { area = src.area; k(); }
+
+  let renovation = null;
+  if (src.renov) {
+    if (src.renov === 'yes') {
+      const rp = src.renovParts || {};
+      const n = ['windows', 'walls', 'roof'].filter((x) => rp[x]).length;
+      // walls and roof drive heat loss most; windows alone change little
+      renovation = rp.walls && rp.roof ? (n === 3 ? 'fully' : 'partially') : (rp.walls || rp.roof) ? 'partially' : null;
+      k();
+    } else if (src.renov === 'no') k(); else u('renovation');
+  }
+  else if (src.ins) {
+    const ins = src.ins;
+    ['walls', 'roof', 'windows'].forEach((x) => (ins[x] === 'yes' || ins[x] === 'no' ? k() : u(x + ' insulation')));
+    const yes = ['walls', 'roof', 'windows'].filter((x) => ins[x] === 'yes').length;
+    renovation = ins.walls === 'yes' && ins.roof === 'yes' ? (yes === 3 ? 'fully' : 'partially') : (ins.walls === 'yes' || ins.roof === 'yes') ? 'partially' : null;
+  } else na('renovation');
+
+  let dist = src.heating;
+  if (dist === 'unsure' || !dist) { dist = 'radiators'; u('type of heating'); } else k();
+  const rad = src.rad || {};
+  let rc = null;
+  if (dist !== 'underfloor') {
+    if (rad.count && rad.count !== 'unsure') { const c = +rad.count; rc = c === 24 ? { lo: 21, hi: 28 } : { lo: Math.max(1, c - 2), hi: c + 2 }; k(); }
+    else {
+      // about one radiator per 12 m² of living space
+      const aMid = area == null ? 130 : typeof area === 'object' ? (area.lo + area.hi) / 2 : area;
+      const guess = Math.max(4, Math.min(30, Math.round(aMid / 12)));
+      if (rad.count === 'unsure') { rc = { lo: Math.max(3, guess - 3), hi: guess + 3 }; u('number of radiators'); } else { rc = guess; na('number of radiators'); }
+    }
+  }
+  let rtype = rad.size && rad.size !== 'unsure' ? rad.size : null;
+  if (photo.pipes && photo.pipes.radiator_type && photo.pipes.radiator_type !== 'unknown' && photo.pipes.confidence !== 'low') { rtype = photo.pipes.radiator_type; meta.photos++; }
+  if (dist !== 'underfloor') { if (rtype) k(); else if (rad.size === 'unsure') u('radiator size'); else na('radiator size'); }
+  let pipe = rad.pipe && rad.pipe !== 'unsure' ? rad.pipe : 'unknown';
+  if (photo.pipes && photo.pipes.pipe_hint && photo.pipes.pipe_hint !== 'unclear' && photo.pipes.confidence !== 'low' && pipe === 'unknown') { pipe = photo.pipes.pipe_hint; meta.photos++; }
+  if (dist !== 'underfloor') { if (pipe !== 'unknown') k(); else if (rad.pipe === 'unsure') u('pipe system'); else na('pipe system'); }
+
+  let setpoint = null; // the boiler's current setting, not the required flow temperature
+  if (photo.boiler && photo.boiler.flow_temperature_c) { setpoint = photo.boiler.flow_temperature_c; meta.photos++; }
+  else if (photo.manualFlow) { setpoint = photo.manualFlow; k(); }
+
+  let persons = src.persons ?? null; if (persons) k(); else { persons = 3; na('household size'); } // German average for a family house
+  const ex = src.ex || {};
+  const houseF = { detached: [1, 'detached'], semi: [0.85, 'semi-detached'], end: [0.85, 'end-of-terrace'], mid: [0.75, 'mid-terrace'] }[src.house] || [1, 'detached'];
+  if (src.house) k(); else na('house type');
+  if (photo.outside) meta.photos++;
+
+  const b = {
+    building_id: src.name || 'Your home', construction_year: year, floor_area_m2: area, renovation_status: renovation,
+    heat_distribution: dist, annual_consumption_kwh: kwh, energy_carrier: carrier, energy_carrier_detail: fuel === 'lpg' ? 'LPG' : '',
+    radiator_info: src.radInfo || '', pipe_system: pipe, flow_temperature_c: null, persons_in_household: persons, hot_water_via_heating: !ex.sepwater, building_notes: src.notes || '',
+  };
+  const extra = {
+    radiatorCount: rc, radiatorType: rtype, boilerSetpoint: setpoint,
+    textFacts: { houseFactor: houseF[0], houseLabel: houseF[1], extraHeatSource: !!ex.stove, solarThermal: !!ex.solar, unheatedArea: !!ex.unused, lpg: fuel === 'lpg' },
+    installFindings: photo.outside ? [photo.outside.finding] : [],
+  };
+  return { b, extra, meta };
+}
+
+/* ================= plain-language result ================= */
+function plain(f) {
+  const t = f.title;
+  if (/on the high side|Possibly a very high/i.test(t)) return ['Your house loses quite a lot of heat', 'Better insulation would make a heat pump cheaper to run. It is not a must.'];
+  if (/Very high heating load/i.test(t)) return ['Your house loses a lot of heat', 'Insulation should come first, or be planned together with the heat pump.'];
+  if (/probably not enough/i.test(t)) return ['Your radiators may be a little small for a heat pump', 'Usually one or two radiators in the coldest rooms are swapped for bigger ones.'];
+  if (/Radiator size unknown|Radiators not described/i.test(t)) return ['We can\'t see yet if your radiators are big enough', 'A technician checks this in a few minutes. Sometimes one or two radiators are swapped.'];
+  if (/Single-pipe/i.test(t)) return ['Your pipes run in one loop from radiator to radiator', 'This works, but a technician needs to check it on site.'];
+  if (/valves need/i.test(t)) return ['Some radiator valves need replacing', 'A small, standard job.'];
+  if (/add up/i.test(t)) return ['Some of your numbers don\'t quite fit together', 'We\'ll double-check them with you. That\'s normal.'];
+  if (/Two heating circuits/i.test(t)) return ['You have underfloor heating and radiators', 'The radiators decide how warm the water must be. Usually no problem.'];
+  if (/don't know yet/i.test(t)) return ['We don\'t know a few details yet', 'The result could go either way. A photo of your bill or a quick visit settles it.'];
+  if (/Flow temperature/i.test(t) && f.status === 'blocker') return ['Your heating runs very hot today', 'Bigger radiators or insulation would be needed first.'];
+  if (/Boiler set to/i.test(t)) return ['Your boiler is set quite warm today', 'Many boilers run hotter than needed. A technician tests whether 55 °C is enough.'];
+  if (/Flow temperature/i.test(t)) return ['Your heating runs quite warm today', 'A heat pump can do this, but it costs a bit more to run.'];
+  if (/Pipe system not documented/i.test(t)) return ['We don\'t know how your pipes are laid', 'In houses of this age a technician should take a quick look.'];
+  if (/Outdoor unit|outdoor unit/i.test(t)) return [t, f.text];
+  return [t.replace(/ —.*$/, ''), ''];
+}
+const VERDICT_TEXT = {
+  green: ['Your home is very likely ready for a heat pump', 'Nothing in your answers speaks against it.'],
+  yellow: ['A heat pump will probably work in your home', 'A few points need a quick check by a technician first.'],
+  red: ['Not yet, but there is a way', 'Something needs to change first. A technician can tell you what it takes.'],
+  redData: ['We need a little more information', 'That is not a "no". With your energy bill we can give you a real answer.'],
+};
+const vKey = (r) => (r.verdict === 'red' && (r.missing.length >= 2 || r.load.best == null) ? 'redData' : r.verdict);
+
+function savings(r) {
+  const sc = r.scenarios ? Object.values(r.scenarios) : [r];
+  const vals = [];
+  sc.forEach((s) => { if (s.cost && s.cost.today != null) vals.push(s.cost.today - s.cost.hp.hi, s.cost.today - s.cost.hp.lo); });
+  if (!vals.length) return null;
+  const mid = r.cost && r.cost.today != null ? r.cost.today - (r.cost.hp.lo + r.cost.hp.hi) / 2 : (Math.min(...vals) + Math.max(...vals)) / 2;
+  return { lo: Math.min(...vals), hi: Math.max(...vals), mid };
+}
+const savTxt = (s) => { const lo = r50(Math.max(0, s.lo)), hi = r50(s.hi); return hi - lo > 100 ? `${eur(lo)} – ${eur(hi)}` : eur(r50(Math.max(0, s.mid))); };
+
+function renderResult() {
+  const [h, s] = VERDICT_TEXT[vKey(R)];
+  const opens = R.findings.filter((f) => f.status === 'check' || f.status === 'blocker').slice(0, 3).map(plain);
+  const sav = savings(R);
+  const facts = [];
+  const noPrice = !sav && R.load.best != null && (A.fuel === 'district' || A.fuel === 'other');
+  const saveBox = noPrice ? `<div class="fact money" style="margin-top:20px"><span class="ic">€</span><div><b>We can't compare running costs for ${A.fuel === 'district' ? 'district heating' : 'your fuel'} yet</b><span>Its price differs a lot from place to place. A technician compares it with your real bill.</span></div></div>` : sav ? `<div class="save-hero" style="margin-top:20px;padding:22px">
+      <div class="lbl">${sav.hi > 50 ? 'You could already be saving about' : 'Your running costs would be'}</div>
+      <div class="amt" style="font-size:clamp(38px,7vw,54px)">${sav.hi > 50 ? savTxt(sav) : 'about the same'}</div>
+      <div class="yrs">${sav.hi > 50 ? 'per year with a heat pump' : 'as today'}</div>
+      <div class="sure"><i class="on"></i><i></i><i></i><span>First estimate from your answers</span></div>
+      <p style="margin:14px auto 0;max-width:46ch;color:var(--muted);font-size:17px">In the next step you can add your exact details and a few photos to get a precise calculation.</p>
+    </div>` : '';
+  // The challenge asks us to keep "there is an obstacle" apart from "we can't tell yet".
+  const unknownRe = /unknown|not documented|not described|don't know yet|add up|unclear|not visible|Possibly/i;
+  const open = R.findings.filter((f) => f.status === 'check' || f.status === 'blocker');
+  const obstacles = open.filter((f) => f.status === 'blocker');
+  const cantTell = open.filter((f) => f.status === 'check' && unknownRe.test(f.title));
+  const closer = open.filter((f) => f.status === 'check' && !unknownRe.test(f.title));
+  const group = (title, sub, items, cls, ic) => items.length ? `<div class="group-h"><b>${title}</b><span>${sub}</span></div>` + items.slice(0, 3).map(plain).map(([t, d]) => `<div class="fact ${cls}"><span class="ic">${ic}</span><div><b>${esc(t)}</b><span>${esc(d)}</span></div></div>`).join('') : '';
+  facts.push(group('Something has to change first', 'An obstacle we can see in your answers', obstacles, 'blocker', '!'));
+  facts.push(group('Worth a closer look', 'Known points a technician checks', closer, 'check', '!'));
+  facts.push(group('We can\'t tell yet from your answers', 'Not a problem, just missing information', cantTell, 'info', '?'));
+  if (!open.length) facts.push(`<div class="fact ok"><span class="ic">✓</span><div><b>${R.dist.flowClass === 'underfloor' ? 'Underfloor heating is ideal for a heat pump' : 'Your radiators should manage'}</b><span>Nothing in your answers speaks against a heat pump.</span></div></div>`);
+  const techList = `<div class="tech-card"><b>What a technician always checks on site</b><ul>${R.technician.filter((x) => !x.fromFindings).map((x) => `<li>${esc(x.title)}</li>`).join('')}</ul></div>`;
+  const lo = R.range.lo ?? R.load.lo, hi = R.range.hi ?? R.load.hi;
+  $('#v-result').innerHTML = `
+    <div class="light-card ${R.verdict}">
+      <div class="lamp" role="img" aria-label="${R.verdict} light"><i></i><i></i><i></i></div>
+      <div><h2>${esc(h)}</h2><p>${esc(s)}</p></div>
+    </div>
+    ${saveBox}
+    <div class="facts">${facts.join('')}</div>
+    ${techList}
+    <details class="how"><summary>How we worked this out</summary><ul>
+      ${R.load.best != null ? `<li>Your home needs about <b>${fmt1(R.load.best)} kW</b> of heat on the coldest day (range ${fmt1(lo)} – ${fmt1(hi)} kW).</li>` : ''}
+      ${R.load.method.area && R.load.method.consumption ? `<li>Two ways to estimate it: from your energy use about ${fmt1(R.load.method.consumption.kw)} kW; from floor area and building age ${fmt1(R.load.method.area.lo)} – ${fmt1(R.load.method.area.hi)} kW. ${{ 'consumption-primary': 'Your energy use looks normal for this house, so it leads.', 'consumption-too-low': 'Your energy use looks unusually low for this house, so we go by floor area and age.', 'consumption-too-high': 'Your energy use looks unusually high for this house, so we show the full range.', 'consumption-lower-bound': 'A second heat source lowers your bill, so floor area and age lead.' }[R.load.mode] || ''}</li>` : R.load.method.area ? '<li>We estimated it from floor area and building age, because we don\'t know your energy use yet.</li>' : ''}
+      <li>${R.dist.flowClass === 'underfloor' ? 'Underfloor heating needs water at about 35 °C, which is ideal.' : R.dist.flowClass === 'upTo55' ? 'Your radiators should manage with water at up to 55 °C, where heat pumps work well.' : 'Your radiators may need water at 55–60 °C. This works, but costs a bit more.'}</li>
+      ${CTX.unsureList.length ? `<li>You answered "not sure" for: ${esc(CTX.unsureList.join(', '))}. We calculated with a range.</li>` : ''}
+      ${A.zip && zipInfo(A.zip) ? `<li>Your area (${esc(A.zip.slice(0, 2))}xxx): ${esc(zipInfo(A.zip))}</li>` : ''}
+      <li>Running costs: heat pump at 26 ct/kWh with an efficiency (JAZ) of ${R.dist.jazRange ? R.dist.jazRange.join('–') : R.dist.jaz}; gas 11 ct/kWh; heating oil €1.70 per litre.</li></ul></details>
+    <div class="nav"><button class="btn ghost back" type="button" id="resBack" aria-label="Back">←</button><button class="btn primary wide" type="button" id="toNext">Next step →</button></div>`;
+  $('#resBack').onclick = () => { if (A.name) show('v-start'); else { show('v-q'); renderQ(); } };
+  $('#toNext').onclick = () => show('v-next');
+  setProg(1);
+  show('v-result');
+}
+function finishQuick() {
+  const { b, extra, meta } = toBuilding();
+  R = E.assessRange(b, extra); CTX = meta;
+  renderResult();
+}
+
+/* ================= next step ================= */
+$('#nextBack').onclick = () => show('v-result');
+$('#chooseCall').onclick = () => { PATH = 'call'; $('#contactHelp').textContent = 'A heating expert will call you to talk through your result. No obligation.'; show('v-contact'); };
+$('#chooseSave').onclick = () => { PATH = 'savings'; renderPhotos(); show('v-details'); };
+$('#shareBtn').onclick = () => {
+  const [h, s] = VERDICT_TEXT[vKey(R)];
+  const sav = savings(R);
+  const txt = `Our heat pump check: ${h}. ${s}${sav && sav.hi > 50 ? ` Estimated saving: ${savTxt(sav)} per year.` : ''}`;
+  const fallback = () => { $('#shareNote').textContent = txt; };
+  try { navigator.clipboard.writeText(txt).then(() => { $('#shareNote').textContent = 'Copied. Paste it into a message to your family.'; }, fallback); } catch (e) { fallback(); }
+};
+
+/* ================= contact ================= */
+let callTime = 'afternoon';
+$$('#cTime button').forEach((b) => b.addEventListener('click', () => { $$('#cTime button').forEach((x) => x.setAttribute('aria-pressed', x === b)); callTime = b.dataset.v; }));
+$('#contactBack').onclick = () => show(PATH === 'savings' ? 'v-savings' : 'v-next');
+$('#contactForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = $('#cName').value.trim(), phone = $('#cPhone').value.trim(), email = $('#cEmail').value.trim(), zip = $('#cZip').value.trim();
+  const err = [];
+  if (!name) err.push('Please enter your name.');
+  if (phone.replace(/\D/g, '').length < 6) err.push('Please enter a phone number we can call.');
+  if (email && !/^\S+@\S+\.\S+$/.test(email)) err.push('The email address looks incomplete.');
+  if (!$('#cConsent').checked) err.push('Please tick the box so we may call you.');
+  $('#cErr').textContent = err.join(' ');
+  if (err.length) return;
+  saveLead({ name, phone, email, zip, time: callTime });
+  $('#v-thanks').innerHTML = `<div class="light-card green" style="grid-template-columns:1fr;text-align:center"><div><h2>Thank you, ${esc(name.split(' ')[0])}!</h2>
+    <p>A heating expert will call you in the ${esc(callTime)} within the next two working days.</p></div></div>
+    <div class="facts"><div class="fact ok"><span class="ic">✓</span><div><b>Have your energy bill at hand</b><span>It makes the call quicker and the estimate more precise.</span></div></div></div>
+    <div class="nav"><button class="btn ghost" type="button" id="againBtn">Check another home</button></div>`;
+  $('#againBtn').onclick = restart;
+  setProg(1);
+  show('v-thanks');
+});
+
+/* ================= detailed path: photos ================= */
+const PCARDS = [
+  { k: 'bill', icon: 'bill', t: 'Your energy bill', p: 'The page with your yearly consumption. We read the amount and your fuel.',
+    manual: 'kWh per year <input type="number" data-m="kwh" placeholder="e.g. 18000" min="1000" max="100000" aria-label="kWh per year">' },
+  { k: 'outside', icon: 'wall', t: 'Your house from outside', p: 'The wall or garden where the heat pump\'s outdoor unit could stand. It needs about 1 × 1 m and some distance to the neighbours. We check if there is space.' },
+  { k: 'pipes', icon: 'pipes', t: 'The pipes under a radiator', p: 'From the side, so we can see the radiator and where the pipes go.', skip: () => A.heating === 'underfloor' || !!PHOTO.pipes },
+  { k: 'boiler', icon: 'boiler', t: 'Your boiler\'s display or dial', p: 'We look for the water temperature it is set to.',
+    manual: 'Set to <input type="number" data-m="flow" placeholder="e.g. 60" min="25" max="90" aria-label="Boiler temperature in degrees"> °C' },
+];
+function renderMore() {
+  A.rad = A.rad || {}; A.ex = A.ex || {};
+  const row = (label, name, opts, val) => `<div><div style="font-weight:700;margin-bottom:8px">${label}</div>${segHTML(name, opts, val)}</div>`;
+  $('#moreDetails').innerHTML = `<h3 style="margin:0;font-size:21px">A few quick taps <span style="font-weight:400;color:var(--muted);font-size:16px">(optional)</span></h3>`
+    + row('People living there', 'persons', [['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5+']], A.persons)
+    + (A.heating !== 'underfloor' ? row('Number of radiators', 'count', [['3', '1–5'], ['8', '6–10'], ['13', '11–15'], ['18', '16–20'], ['24', 'More'], ['unsure', 'Not sure']], A.rad.count)
+      + row('Most radiators are…', 'size', [['11', 'Thin (1 panel)'], ['22', 'Medium (2)'], ['33', 'Thick (3)'], ['unsure', 'Not sure']], A.rad.size) : '')
+    + `<div><div style="font-weight:700;margin-bottom:8px">Also true for us</div><div class="seg" id="exSeg">${[['stove', 'Wood stove used a lot'], ['solar', 'Solar hot water'], ['unused', 'Unused rooms'], ['sepwater', 'Separate water heater']].map(([k2, l]) => `<button type="button" data-v="${k2}" aria-pressed="${!!A.ex[k2]}">${l}</button>`).join('')}</div></div>`;
+  $$('#moreDetails .seg[data-name]').forEach((sg) => $$('button', sg).forEach((b) => b.addEventListener('click', () => {
+    $$('button', sg).forEach((x) => x.setAttribute('aria-pressed', x === b));
+    const n = sg.dataset.name, v = b.dataset.v;
+    if (n === 'house') A.house = v; else if (n === 'persons') A.persons = +v; else A.rad[n] = v;
+  })));
+  $$('#exSeg button').forEach((b) => b.addEventListener('click', () => { A.ex[b.dataset.v] = !A.ex[b.dataset.v]; b.setAttribute('aria-pressed', A.ex[b.dataset.v]); }));
+}
+function renderPhotos() {
+  if (!A.name) { $('#moreDetails').hidden = false; renderMore(); } else $('#moreDetails').hidden = true;
+  const cards = PCARDS.filter((c) => !(c.skip && c.skip()));
+  $('#photoCards').innerHTML = cards.map((c) => `
+    <div class="photo${PHOTO[c.k] ? ' done' : ''}" data-k="${c.k}">
+      <div class="thumb">${ICON[c.icon]}</div>
+      <div><h3>${c.t}</h3><p>${c.p}</p>
+        <label class="up">${ICON.camera} ${c.k === 'bill' ? 'Add photo or PDF' : 'Add photo'}<input type="file" accept="${c.k === 'bill' ? 'image/*,application/pdf' : 'image/*'}" ${c.k === 'bill' ? '' : 'capture="environment"'} data-k="${c.k}"></label>
+        <div class="read-out">${PHOTO[c.k] ? 'Already added ✓' : ''}</div>
+        ${c.manual ? `<div class="manual" hidden>${c.manual}</div>` : ''}
+      </div></div>`).join('');
+  $$('#photoCards input[type=file]').forEach((inp) => inp.addEventListener('change', () => onPhoto(inp)));
+  $$('#photoCards [data-m]').forEach((inp) => inp.addEventListener('input', () => {
+    if (inp.dataset.m === 'kwh') { if (+inp.value >= 1000) { A.usageMode = 'kwh'; A.usageKwh = +inp.value; } }
+    if (inp.dataset.m === 'flow') PHOTO.manualFlow = +inp.value || null;
+  }));
+}
+const PROMPTS = {
+  bill: `This is a photo of a German household energy bill (gas, heating oil, LPG or district heating). Extract only what is printed; never guess. Reply with only JSON:
+{"annual_consumption_kwh": number|null, "energy_carrier": "gas"|"oil"|"district"|"electric"|null, "lpg": boolean, "annual_cost_eur": number|null, "is_full_year": boolean|null, "notes": string}
+If consumption is given in m³ of gas, convert with the factor printed on the bill, or 10 kWh/m³ if none, and say so in notes. If in litres of oil, multiply by 10.`,
+  pipes: `You are helping a heat-pump installer. The photo shows a radiator and the pipes or valve block that connect it, in a German home. Decide whether the heating is single-pipe (Einrohr) or two-pipe (Zweirohr), using ONLY what is visible, and the radiator type if you can see its side.
+
+Go through these cues in order and use the first that clearly applies:
+1. One pipe runs along the wall or skirting board past the radiator, and the radiator is tapped from it with a T-fitting or short connections → "single-pipe".
+2. A compact valve block (H-block) under the radiator WITH an extra adjustable port or cap on the SIDE of the block (where the bypass is set) → "single-pipe".
+3. Valve (thermostat head) at the TOP of the radiator, a separate return connection at the BOTTOM, and two separate pipes going into the floor or wall with no connecting piece between them → "two-pipe".
+4. A compact H-block with two pipes straight into the floor and NO extra port on the side, looking modern → "two-pipe", confidence medium at most.
+5. A bathroom or towel radiator with a multi-connection valve block, or any block whose sides you can't see, or pipes hidden → "unclear". Such blocks exist for both systems.
+6. Anything else, or not sure → "unclear". Saying "unclear" is correct and expected when the photo does not show the cue.
+
+Two pipes at a radiator alone do NOT prove two-pipe; only cues 3 and 4 do.
+Radiator type = panels then fin layers (11, 21, 22, 33) if the side profile is visible; otherwise "unknown".
+
+Reply with only JSON:
+{"pipe_hint": "single-pipe"|"two-pipe"|"unclear", "cue": 1|2|3|4|5|6, "evidence": "one short sentence in plain English for a homeowner, saying what you saw", "radiator_type": "11"|"21"|"22"|"33"|"unknown", "confidence": "low"|"medium"|"high"}`,
+  boiler: `Photo of a gas or oil boiler's display, control panel or dial. Find the set flow (supply) temperature for space heating, in °C. Reply with only JSON:
+{"flow_temperature_c": number|null, "what_you_see": string, "confidence": "low"|"medium"|"high"}
+Ignore hot-water (DHW) temperatures. If you can't see a heating flow temperature, return null.`,
+  outside: `Photo of the outside of a house. Could an air-to-water heat pump outdoor unit (about 1 x 1 m, needs free airflow and some distance to neighbours' windows for noise) stand here? Reply with only JSON:
+{"space": "likely"|"limited"|"unclear", "concerns": [string], "suggestion": string}`,
+};
+const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+async function pdfToImage(file) {
+  if (!window.pdfjsLib) { await loadScript(PDFJS + 'pdf.min.js'); await loadScript(PDFJS + 'pdf.worker.min.js'); window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.js'; }
+  const pdf = await window.pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+  const page = await pdf.getPage(1);
+  const vp = page.getViewport({ scale: 2 });
+  const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height;
+  await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+  return new Promise((res) => c.toBlob((b) => res(new File([b], 'bill.png', { type: 'image/png' })), 'image/png'));
+}
+async function onPhoto(inp) {
+  let file = inp.files[0]; if (!file) return;
+  const k = inp.dataset.k; const card = inp.closest('.photo');
+  if (file.type === 'application/pdf') {
+    try { const img = await pdfToImage(file); $('.thumb', card).innerHTML = `<img alt="Your bill" src="${URL.createObjectURL(img)}">`; if (ai.sample) file = img; }
+    catch (e) { $('.thumb', card).innerHTML = ICON.bill; if (ai.sample) { const out = $('.read-out', card); out.textContent = 'This PDF couldn\'t be opened. Please add a photo or screenshot of the first page.'; return; } }
+  } else $('.thumb', card).innerHTML = `<img alt="Your photo" src="${URL.createObjectURL(file)}">`;
+  card.classList.add('done');
+  const out = $('.read-out', card); const man = $('.manual', card);
+  if (!aiOn()) {
+    out.textContent = 'Photo saved for your technician.' + (man ? ' Please also type the value below.' : '');
+    if (man) man.hidden = false;
+    return;
+  }
+  out.textContent = ''; out.classList.add('busy');
+  try {
+    const j = await askClaude(file, PROMPTS[k]);
+    out.classList.remove('busy');
+    if (k === 'bill') {
+      PHOTO.bill = j;
+      const inQuick = !!card.closest('#qBody');
+      out.innerHTML = j.annual_consumption_kwh ? `We read <b>${Math.round(j.annual_consumption_kwh).toLocaleString('en')} kWh</b> per year${j.annual_cost_eur ? ` (${eur(j.annual_cost_eur)})` : ''}.${inQuick ? ' We use this instead of the estimate above.' : ''}${j.is_full_year === false ? ' <b>This is not a full year</b>, so we will check it with you.' : ''}` : (inQuick ? 'We couldn\'t find the yearly amount on this page. Your answer above is used instead.' : 'We couldn\'t find the yearly amount. Please type it below.');
+      if (!j.annual_consumption_kwh && man) man.hidden = false;
+    }
+    if (k === 'pipes') {
+      PHOTO.pipes = j;
+      const sure = j.confidence !== 'low';
+      const pp = j.pipe_hint === 'single-pipe' && sure ? 'Your pipes look like a <b>single-pipe loop</b>. A technician confirms this on site.'
+        : j.pipe_hint === 'two-pipe' && sure ? 'Your pipes look like a <b>normal two-pipe</b> layout.'
+        : '<b>We can\'t tell from this photo</b>, and that\'s normal: some valve blocks look the same for both systems. A technician checks it on site.';
+      out.innerHTML = `${pp}${j.evidence ? `<br><span style="color:var(--muted)">What we saw: ${esc(j.evidence)}</span>` : ''}`;
+    }
+    if (k === 'boiler') {
+      PHOTO.boiler = j;
+      out.innerHTML = j.flow_temperature_c ? `We read: heating water set to <b>${esc(j.flow_temperature_c)} °C</b>.` : 'We couldn\'t find the heating temperature. Type it below if you know it.';
+      if (!j.flow_temperature_c && man) man.hidden = false;
+    }
+    if (k === 'outside') {
+      const st = j.space === 'likely' ? 'ok' : j.space === 'limited' ? 'check' : 'note';
+      PHOTO.outside = { raw: j, finding: { status: st, area: 'Outdoor unit', title: j.space === 'likely' ? 'There looks to be space for the outdoor unit' : j.space === 'limited' ? 'Space for the outdoor unit looks tight' : 'Outdoor unit location unclear from the photo', text: [...(j.concerns || []), j.suggestion].filter(Boolean).join(' ') } };
+      out.innerHTML = `${esc(PHOTO.outside.finding.title)}. ${esc(j.suggestion || '')}`;
+    }
+  } catch (e) {
+    out.classList.remove('busy');
+    const copy = { not_granted: 'Photo reading was not allowed. Your photo is kept for the technician.', rate_limited: 'Too many requests right now. Your photo is kept for the technician.', image_rejected: 'This photo couldn\'t be read. Try a JPG or PNG.' };
+    out.textContent = copy[e && e.code] || 'We couldn\'t read this photo. It is kept for your technician.';
+    if (man) man.hidden = false;
+    if (e && (e.code === 'not_granted' || e.code === 'sampling_disabled')) ai.sample = null;
+  }
+}
+$('#detailsBack').onclick = () => show('v-next');
+$('#calcBtn').onclick = () => {
+  if (!A.name) { const t = toBuilding(); R = E.assessRange(t.b, t.extra); CTX = t.meta; }
+  else if (PHOTO.bill || PHOTO.pipes || PHOTO.boiler || PHOTO.manualFlow || PHOTO.outside) {
+    const base = DATA.find((x) => x.building_id === A.name);
+    const f = E.readFreeText(base);
+    const b = { ...base };
+    if (PHOTO.bill && PHOTO.bill.annual_consumption_kwh) b.annual_consumption_kwh = PHOTO.bill.annual_consumption_kwh;
+    const setp = PHOTO.boiler && PHOTO.boiler.flow_temperature_c ? PHOTO.boiler.flow_temperature_c : PHOTO.manualFlow || null;
+    if (PHOTO.pipes && PHOTO.pipes.pipe_hint !== 'unclear' && b.pipe_system === 'unknown') b.pipe_system = PHOTO.pipes.pipe_hint;
+    R = E.assessRange(b, { boilerSetpoint: setp, radiatorCount: f.radiatorCount, radiatorType: PHOTO.pipes && PHOTO.pipes.radiator_type !== 'unknown' ? PHOTO.pipes.radiator_type : null, installFindings: PHOTO.outside ? [PHOTO.outside.finding] : [] });
+    CTX = { ...CTX, photos: ['bill', 'pipes', 'boiler', 'outside'].filter((x) => PHOTO[x]).length };
+  }
+  const sav = savings(R);
+  const photosRead = CTX.photos;
+  const sure = photosRead >= 3 || CTX.unsure <= 1 ? 3 : photosRead >= 1 || CTX.unsure <= 3 ? 2 : 1;
+  const sureTxt = ['', 'Rough estimate', 'Good estimate', 'Precise estimate'][sure];
+  let body;
+  if (!sav) {
+    body = `<div class="save-hero"><div class="lbl">We need your energy use</div><p>Without your bill or monthly payment we can't compare costs. Add a photo of your bill or type the yearly kWh.</p></div>`;
+  } else {
+    const today = R.cost.today, hp = (R.cost.hp.lo + R.cost.hp.hi) / 2;
+    const w = (x) => Math.max(4, (x / Math.max(today, hp)) * 100);
+    body = `<div class="save-hero">
+      <div class="lbl">With a heat pump you could save</div>
+      <div class="amt">${sav.hi > 50 ? savTxt(sav) : '€0'}</div>
+      <div class="yrs">per year, about <b>${eur(r50(Math.max(0, sav.mid)) * 20)}</b> over 20 years at today's prices</div>
+      <div class="cmp">
+        <span>Today</span><div><div class="b" style="width:${w(today)}%"></div></div><span class="v">${eur(r50(today))}</span>
+        <span>Heat pump</span><div><div class="b hp" style="width:${w(hp)}%"></div></div><span class="v">${eur(r50(hp))}</span>
+      </div>
+      <div class="sure">${[1, 2, 3].map((i) => `<i class="${i <= sure ? 'on' : ''}"></i>`).join('')}<span>${sureTxt}${photosRead ? `, ${photosRead} photo${photosRead > 1 ? 's' : ''} used` : ''}</span></div>
+    </div>`;
+  }
+  const [h, s] = VERDICT_TEXT[vKey(R)];
+  $('#v-savings').innerHTML = body + `
+    <div class="facts">
+      <div class="fact ${R.verdict === 'green' ? 'ok' : R.verdict === 'yellow' ? 'check' : 'blocker'}"><span class="ic">${R.verdict === 'green' ? '✓' : '!'}</span><div><b>${esc(h)}</b><span>${esc(s)}</span></div></div>
+      <div class="fact money"><span class="ic">i</span><div><b>Not included: the purchase price</b><span>Your installer gives you an exact quote. Government subsidies can cover a large part of it.</span></div></div>
+    </div>
+    <div class="nav"><button class="btn ghost back" type="button" id="savBack" aria-label="Back">←</button><button class="btn primary wide" type="button" id="bookBtn">Book my free on-site check</button></div>`;
+  $('#savBack').onclick = () => show('v-details');
+  $('#bookBtn').onclick = () => { $('#contactHelp').textContent = 'A heating expert calls you to arrange a free on-site check. No obligation.'; show('v-contact'); };
+  setProg(1);
+  show('v-savings');
+};
+
+/* ================= AI: the viewer's Claude account, or an API key ================= */
+const ai = { key: '', model: 'claude-sonnet-5-5', sample: null };
+try { ai.key = sessionStorage.getItem('hp_key') || ''; ai.model = sessionStorage.getItem('hp_model') || ai.model; } catch (e) {}
+const aiOn = () => !!(ai.sample || ai.key);
+if (window.claude && typeof window.claude.use === 'function') {
+  window.claude.use('sample').then(async (s) => {
+    if (!s) return;
+    const lim = await s.limits().catch(() => null);
+    if (lim && lim.images) ai.sample = s;
+  }).catch(() => {});
+}
+function toB64(file) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(file); }); }
+async function askClaude(file, prompt) {
+  if (ai.sample) return ai.sample.json(prompt, { images: [file] });
+  const data = await toB64(file);
+  const block = file.type === 'application/pdf' ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data } } : { type: 'image', source: { type: 'base64', media_type: file.type || 'image/jpeg', data } };
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-api-key': ai.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: ai.model, max_tokens: 600, messages: [{ role: 'user', content: [block, { type: 'text', text: prompt }] }] }),
+  });
+  if (!res.ok) throw { code: 'api', message: `API ${res.status}` };
+  const j = await res.json(); const m = j.content.map((c) => c.text || '').join('').match(/\{[\s\S]*\}/);
+  if (!m) throw { code: 'invalid_json' };
+  return JSON.parse(m[0]);
+}
+$('#aiSettingsBtn').onclick = () => {
+  $('#aiDlgText').textContent = ai.sample ? 'Photo reading is on. Inside Claude it uses each viewer\'s own Claude account, so no key is needed.' : 'Outside Claude, photo reading needs a Claude API key. It stays in this browser tab and is sent only to api.anthropic.com.';
+  $('#apiKey').value = ai.key; $('#apiModel').value = ai.model; $('#aiDlg').showModal();
+};
+$('#aiDlg').addEventListener('close', () => {
+  if ($('#aiDlg').returnValue !== 'save') return;
+  ai.key = $('#apiKey').value.trim(); ai.model = $('#apiModel').value.trim() || ai.model;
+  try { sessionStorage.setItem('hp_key', ai.key); sessionStorage.setItem('hp_model', ai.model); } catch (e) {}
+});
+
+/* ================= leads (kept in this browser) ================= */
+let LEADS = [];
+try { LEADS = JSON.parse(localStorage.getItem('hp_leads') || '[]'); } catch (e) { LEADS = []; }
+function saveLead(contact) {
+  const lead = { id: 'L' + Date.now(), created: new Date().toISOString(), path: PATH, answers: JSON.parse(JSON.stringify(A)), photo: JSON.parse(JSON.stringify({ bill: PHOTO.bill || null, pipes: PHOTO.pipes || null, boiler: PHOTO.boiler || null, outside: PHOTO.outside || null, manualFlow: PHOTO.manualFlow || null })), contact };
+  LEADS.unshift(lead);
+  try { localStorage.setItem('hp_leads', JSON.stringify(LEADS)); } catch (e) {}
+}
+
+/* ================= start / restart / demo examples ================= */
+function restart() {
+  Object.keys(A).forEach((k) => delete A[k]); Object.keys(PHOTO).forEach((k) => delete PHOTO[k]);
+  qi = 0; R = null; CTX = null; PATH = 'call';
+  $('#contactForm').reset(); $('#cErr').textContent = ''; $('#shareNote').textContent = '';
+  setProg(0); show('v-start');
+}
+$('#restartBtn').onclick = restart;
+$('#startBtn').onclick = () => { qi = 0; show('v-q'); renderQ(); };
+
+// The challenge records are richer than the quick check, so the demo assesses the original record.
+function challengeResult(b) { const f = E.readFreeText(b); return E.assessRange(b, { radiatorCount: f.radiatorCount }); }
+$('#exampleBtns').innerHTML = DATA.map((b) => `<button type="button" data-id="${b.building_id}">${b.building_id} · ${b.construction_year} · ${b.floor_area_m2} m²</button>`).join('');
+$$('#exampleBtns button').forEach((btn) => btn.addEventListener('click', () => {
+  const b = DATA.find((x) => x.building_id === btn.dataset.id);
+  restart();
+  A.name = b.building_id; A.heating = b.heat_distribution;
+  R = challengeResult(b); CTX = { known: 9, unsure: 0, photos: 0, unsureList: [] };
+  renderResult();
+}));
+
+/* ================= company desk ================= */
+$('#installerBtn').onclick = () => { if (authed || !$('#v-login').hidden) { authed = false; $('#pin').value = ''; $('#pinErr').textContent = ''; restart(); } else show('v-login'); };
+$('#loginForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  if ($('#pin').value.trim() === '2026') { authed = true; $('#pinErr').textContent = ''; $('#pin').value = ''; show('v-desk'); renderDesk(); }
+  else $('#pinErr').textContent = 'That PIN is not right. Demo PIN: 2026.';
+});
+$('#loginCancel').onclick = () => { $('#pin').value = ''; $('#pinErr').textContent = ''; restart(); };
+$('#logoutBtn').onclick = () => { authed = false; restart(); };
+
+let PRICES = { ...E.DEFAULT_PRICES };
+let current = null;
+function leadFromRecord(l) {
+  let r, meta;
+  if (l.answers && l.answers.name) {
+    const base = DATA.find((x) => x.building_id === l.answers.name);
+    r = challengeResult(base); meta = { known: 9, unsure: 0, photos: Object.values(l.photo || {}).filter(Boolean).length };
+  } else {
+    const t = toBuilding(l.answers, l.photo || {}); r = E.assessRange(t.b, t.extra); meta = t.meta;
+  }
+  const when = new Date(l.created).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  return { zip: (l.answers && l.answers.zip) || (l.contact && l.contact.zip) || '', id: l.id, title: l.contact ? l.contact.name : 'Anonymous', sub: `${l.path === 'savings' ? 'Detailed check' : 'Call request'} · ${when}`, r, ctx: { ...meta, contact: !!l.contact, path: l.path }, contact: l.contact };
+}
+function allLeads() {
+  const live = LEADS.map(leadFromRecord);
+  const demo = DATA.map((b) => ({ zip: (b.location.match(/\((\d)/) || [])[1] ? b.location.match(/\((\d+)/)[1] : '', id: b.building_id, title: `${b.building_id} (challenge data)`, sub: `${b.construction_year} · ${b.floor_area_m2} m² · ${b.location}`, r: challengeResult(b), ctx: { known: 9, unsure: 0, photos: 0 }, ref: b.reference_heating_load_kw, exp: b.expected_verdict }));
+  return [...live, ...demo].map((x) => ({ ...x, L: E.lead(x.r, x.ctx, PRICES) }));
+}
+function renderDesk() {
+  const leads = allLeads();
+  if (!current || !leads.find((x) => x.id === current)) current = leads[0].id;
+  const pc = (sc) => (sc >= 65 ? 'go' : sc >= 40 ? 'call' : 'no');
+  const pl = { go: 'Visit', call: 'Call first', no: 'Not now' };
+  $('#leadList').innerHTML = leads.map((x) => `<button type="button" class="lead-btn" data-id="${x.id}" aria-current="${x.id === current}"><span>${esc(x.title)}<small>${esc(x.sub)}</small><span class="suit"><span class="dot ${x.r.verdict}"></span>Customer saw ${x.r.verdict}</span></span><span class="prio ${pc(x.L.score)}" title="Visit priority ${x.L.score}/100">${pl[pc(x.L.score)]} · ${x.L.score}</span></button>`).join('');
+  $$('#leadList .lead-btn').forEach((b) => b.addEventListener('click', () => { current = b.dataset.id; renderDesk(); }));
+  renderLead(leads.find((x) => x.id === current), leads);
+}
+function renderLead(x, leads) {
+  const r = x.r, L = x.L, Ld = r.load;
+  const cls = L.score >= 65 ? 'go' : L.score >= 40 ? 'call' : 'no';
+  const gaugeCol = 'var(--accent)';
+  const profCol = 'var(--accent)';
+  const flow = { underfloor: '≈ 35 °C (JAZ 4.0)', upTo55: '≤ 55 °C (JAZ 3.5)', upTo60: '55–60 °C (JAZ 2.8)', above60: '> 60 °C', unknown: '50–60 °C? (JAZ 2.8–3.5)' }[r.dist.flowClass] || '–';
+  const lo = r.range.lo ?? Ld.lo, hi = r.range.hi ?? Ld.hi;
+  const order = { blocker: 0, check: 1, note: 2, ok: 3 };
+  $('#leadDetail').innerHTML = `
+    <div class="d-head"><div><h1>${esc(x.title)}</h1><div class="meta">${esc(x.sub)}</div></div><div style="margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="suit" style="font-size:15px"><span class="dot ${r.verdict}"></span>Customer saw: ${r.verdict}</span><div class="decision" style="margin-left:0">${esc(L.decision)} · ${L.score}</div></div></div>
+    ${x.contact ? `<div class="contact-box"><b>${esc(x.contact.name)}</b> · ${esc(x.contact.phone)}${x.contact.email ? ' · ' + esc(x.contact.email) : ''}${x.contact.zip ? ' · ' + esc(x.contact.zip) : ''} · call in the <b>${esc(x.contact.time)}</b></div>` : ''}
+    <div class="grid2">
+      <div class="panel"><h3>Worth a technician visit?</h3><p class="sub">Visit priority, separate from the customer's traffic light. It adds up suitability, savings, data quality and the customer's interest.</p>
+        <div style="display:flex;justify-content:space-between;font-weight:700"><span>Visit priority</span><span>${L.score} / 100</span></div>
+        <div class="gauge"><i style="width:${L.score}%;background:${gaugeCol}"></i></div>
+        <ul class="reasons">${L.why.map((w) => `<li>${esc(w)}</li>`).join('')}</ul></div>
+      <div class="panel"><h3>Profitable for us?</h3><p class="sub">Placeholder prices. Edit them below.</p>
+        <dl class="kv">
+          <dt>Heat pump size</dt><dd>${L.sizeKw ? L.sizeKw + ' kW' : '–'}</dd>
+          <dt>Heat pump installed</dt><dd>${L.hpCost ? eur(L.hpCost) : '–'}</dd>
+          ${L.extras.map((e) => `<dt>${esc(e.label)}</dt><dd>${eur(e.cost)}</dd>`).join('')}
+          <dt style="color:var(--ink);font-weight:700">Project value</dt><dd>${L.value ? eur(L.value) : '–'}</dd>
+          <dt>Margin at ${Math.round(L.prices.margin * 100)} %</dt><dd>${L.marginEur ? eur(L.marginEur) : '–'}</dd>
+          <dt>Complexity</dt><dd>${L.complexity}</dd>
+          <dt>Verdict</dt><dd style="color:${profCol}">${L.profit}</dd>
+        </dl>
+        ${L.cx.length ? `<p class="sub" style="margin:10px 0 0">Why: ${esc(L.cx.join(', '))}</p>` : ''}
+        ${L.insulationHint ? '<p class="sub" style="margin:6px 0 0">Insulation upsell or partner referral possible.</p>' : ''}</div>
+      <div class="panel"><h3>Before the visit: ask on the phone</h3><ul class="list">${L.ask.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>
+      <div class="panel"><h3>On-site checklist</h3><ul class="list">${L.checklist.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>
+      <div class="panel"><h3>Technical summary</h3>
+        <dl class="kv">
+          <dt>Customer saw</dt><dd><span class="dot ${r.verdict}"></span> ${r.verdict}</dd>
+          ${x.exp ? `<dt>Expected by nuuEnergy</dt><dd>${x.exp}${x.exp === r.verdict ? ' ✓' : ''}</dd>` : ''}
+          <dt>From floor area × age</dt><dd>${Ld.method.area ? `${fmt1(Ld.method.area.lo)}–${fmt1(Ld.method.area.hi)} kW` : '–'}</dd>
+          <dt>From consumption</dt><dd>${Ld.method.consumption ? `${fmt1(Ld.method.consumption.kw)} kW` : '–'}</dd>
+          <dt>Our estimate</dt><dd>${Ld.best != null ? `${fmt1(Ld.best)} kW (${fmt1(lo)}–${fmt1(hi)})` : '–'}</dd>
+          ${x.ref ? `<dt>Reference load</dt><dd>${fmt1(x.ref)} kW${x.ref >= lo && x.ref <= hi ? ' ✓ in range' : ''}</dd>` : ''}
+          <dt>Specific load</dt><dd>${Ld.wm2Best ? Math.round(Ld.wm2Best) + ' W/m²' : '–'}</dd>
+          <dt>Flow temperature</dt><dd>${flow}</dd>
+          <dt>Customer saves / year</dt><dd>${L.savings != null ? eur(L.savings) : '–'}</dd>
+          <dt>Data confidence</dt><dd>${Math.round(L.conf * 100)} %</dd>
+          ${x.zip ? `<dt>Postcode region</dt><dd>${esc(x.zip.slice(0, 2))}xxx · design ≈ ${ZIP_T[x.zip[0]]} °C</dd>` : ''}
+        </dl>
+        <p class="sub" style="margin:10px 0 0">${esc(Ld.basis || '')}</p></div>
+      <div class="panel"><h3>All findings</h3>${[...r.findings].sort((a, b) => order[a.status] - order[b.status]).map((f) => `<div class="f-item ${f.status === 'note' ? 'info' : f.status}"><b>${esc(f.title)}</b><p>${esc(f.text)}</p></div>`).join('')}</div>
+    </div>
+    <div class="panel" style="margin-top:16px"><h3>Price assumptions</h3><p class="sub">Placeholders for the demo, because the challenge gives no installation prices. Changes apply to all leads.</p>
+      <div class="prices">${[['hpFixed', 'Heat pump base (€)'], ['hpPerKw', 'Per kW (€)'], ['radiator', 'Per radiator swap (€)'], ['balancingFixed', 'Balancing base (€)'], ['balancingPerRad', 'Balancing per radiator (€)'], ['singlePipe', 'Single-pipe work (€)'], ['margin', 'Margin (0–1)']].map(([k, l]) => `<label>${l}<input type="number" step="${k === 'margin' ? '0.01' : '100'}" data-p="${k}" value="${PRICES[k]}"></label>`).join('')}</div></div>
+    <div class="panel" style="margin-top:16px"><h3>All leads at a glance</h3><div class="tbl-wrap"><table><thead><tr><th>Lead</th><th>Customer saw</th><th>Load</th><th>Size</th><th>Project value</th><th>Score</th><th>Recommendation</th></tr></thead><tbody>
+      ${leads.map((y) => `<tr><td>${esc(y.title)}</td><td><span class="dot ${y.r.verdict}"></span> ${y.r.verdict}</td><td>${y.r.load.best != null ? fmt1(y.r.load.best) + ' kW' : '–'}</td><td>${y.L.sizeKw ? y.L.sizeKw + ' kW' : '–'}</td><td>${y.L.value ? eur(y.L.value) : '–'}</td><td>${y.L.score}</td><td>${esc(y.L.decision)}</td></tr>`).join('')}
+    </tbody></table></div></div>`;
+  $$('#leadDetail [data-p]').forEach((inp) => inp.addEventListener('change', () => { const v = parseFloat(inp.value); if (!isNaN(v)) { PRICES[inp.dataset.p] = v; renderDesk(); } }));
+}
+
+show('v-start');
+})();
+</script>
+</body>
+</html>
